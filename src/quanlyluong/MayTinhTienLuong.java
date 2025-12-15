@@ -3,8 +3,8 @@ package quanlyluong;
 
 public class MayTinhTienLuong {
 
-    public static double tinhTongLuong(double luong1Gio, double gioChuan, 
-                                       double gioTangCa, double heSoTangCa, 
+    public static double tinhTongLuong(double luong1Gio, double gioChuan,  //Nên giải thích tại sao lại dùng public static ở đây!
+                                       double gioTangCa, double heSoTangCa,  //Khai báo biến
                                        boolean coNghiThaiSan) {
         double troCapThaiSan = 0;
         double tongLanh = 0;

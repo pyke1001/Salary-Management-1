@@ -1,164 +1,348 @@
-/* Trước khi đọc code thì khuyến khích bạn làm theo các bước sau để... đỡ đau mắt:
-1. Trên thanh menu của Eclipse, chọn Window -> Preferences.
-2. Ở ô tìm kiếm góc trên bên trái cửa sổ mới hiện ra, gõ chữ: Spelling.
-3. Bấm vào mục Spelling (thường nằm trong General -> Editors -> Text Editors).
-4. Bỏ dấu tích ở ô Enable spell checking (Bật kiểm tra chính tả). Bấm Apply and Close.
-Làm xong thì xóa mấy dòng này đi cho đỡ vướng mắt (Hoặc click vào dấu trừ (-) ở đầu hàng số 1 để ẩn đi). */
+package quanlyluong;
 
-// Chú thích: Code của Quốc nằm ở dòng 132 trở đi.
-
-package quanlyluong;      
-
-import database.ConnectDB;                                      //Dòng này để liên kết với file ConnectDB.java - Dùng để tải dữ liệu từ SQL Server
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.*;                                                           
-import java.util.Vector;                                                       //Tốt nhất là nên bỏ qua mấy cái import này D:
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Vector;
+import database.ConnectDB; 													  // Import class kết nối database
 
-public class FormNhanVien extends JFrame {                                    //Tạo lớp FormNhanVien thừa hưởng các đặc điểm của JFrame. Nếu thắc mắc JFrame ở đâu thì nó ở import javax.swing.* đó.
+public class FormNhanVien extends JFrame {                                    //Tạo lớp FormNhanVien thừa hưởng các đặc điểm của JFrame.
 
     JTable table;
     DefaultTableModel model;                                                   
-    JTextField txtNgayTre;                                                   //Khai báo biến
-    JButton btnPhat;
-    JButton btnLoad;
+    JTextField txtNgayTre;                                                    
     JLabel lblTre;
-    JButton btnMoTinhLuong;
+    JButton btnThem, btnSua, btnXoa,btnPhat,btnLoad,btnMoTinhLuong;
+    																		  //Khai báo biến
+    private JTextField txtMaNV;
+    private JTextField txtHoTen;
+    private JTextField txtPhongBan;
+    private JTextField txtLuongCoBan;
+    private JTextField txtHeSo;
 
     public FormNhanVien() {
 
         setTitle("Quản Lý Nhân Viên - VKU");
-        setSize(800, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);                      //Bắt buộc phải có dòng này! Nếu không lúc tắt cửa sổ nó vẫn chạy ngầm làm nặng máy..
-        setLocationRelativeTo(null);               //Thay vì cửa sổ hiện góc trên bên trái, nó hiện ngay giữa!
+        setSize(850, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);                     	 //Bắt buộc phải có dòng này.
+        setLocationRelativeTo(null);              								
+        getContentPane().setLayout(null);          								 //Absolute Layout!
         
-        String[] columns = {"Mã NV", "Họ Tên", "Phòng Ban", "Lương Cứng", "Hệ Số", "Tổng Nhận"};     //Tạo tên cột với biến columns (Dùng ở dưới nè)    
-        model = new DefaultTableModel(columns, 0);                 //Tạo cái "não" để nó chứa dữ liệu, 2 tham số trong ngoặc tương ứng với (tiêu đề, dòng trắng)	
+        //Tạo ô nhập liệu - Việt
         
-        getContentPane().setLayout(null);           //Thiết lập Absolute Layout! (Dùng để kéo thả). Có cả Layout Manager, mà newbie thì không dùng.
+        // Hàng 1: Mã NV + Họ Tên
+        JLabel lblMa = new JLabel("Mã NV:");
+        lblMa.setBounds(20, 20, 80, 25);
+        add(lblMa);
+        txtMaNV = new JTextField();
+        txtMaNV.setBounds(80, 20, 100, 25);
+        add(txtMaNV);
+
+        JLabel lblTen = new JLabel("Họ Tên:");
+        lblTen.setBounds(200, 20, 80, 25);
+        add(lblTen);
+        txtHoTen = new JTextField();
+        txtHoTen.setBounds(260, 20, 150, 25);
+        add(txtHoTen);
+
+        // Hàng 2: Phòng ban + Lương Cứng
+        JLabel lblPhong = new JLabel("Phòng:");
+        lblPhong.setBounds(20, 60, 80, 25);
+        add(lblPhong);
+        txtPhongBan = new JTextField();
+        txtPhongBan.setBounds(80, 60, 100, 25);
+        add(txtPhongBan);
+
+        JLabel lblLuong = new JLabel("Lương:");
+        lblLuong.setBounds(200, 60, 80, 25);
+        add(lblLuong);
+        txtLuongCoBan = new JTextField();
+        txtLuongCoBan.setBounds(260, 60, 150, 25);
+        add(txtLuongCoBan);
+
+        // Hàng 3: Hệ số
+        JLabel lblHS = new JLabel("Hệ số:");
+        lblHS.setBounds(430, 60, 50, 25);
+        add(lblHS);
+        txtHeSo = new JTextField();
+        txtHeSo.setBounds(480, 60, 50, 25);
+        add(txtHeSo);
+
+        //Thao tác cơ bản - Việt
         
-        table = new JTable(model);                             //Kẻ bảng         
-        btnPhat = new JButton("Cập nhật Phạt");                //Tạo nút
-        btnPhat.setBounds(0, 316, 150, 30);                  //Kéo thả :D
-        getContentPane().add(btnPhat);	                   //Có thể sử dụng this.add(btnPhat), nhưng nếu lúc sau đổi màu thì phải getContentPane (Tham khảo Gemini để hiểu thêm).
-        btnPhat.setVisible(false);
+        // Nút THÊM
+        btnThem = new JButton("➕ Thêm"); 
+        btnThem.setBounds(430, 15, 100, 30);
+        btnThem.setFont(new Font("Dialog", Font.BOLD, 12));
+        add(btnThem);
         
-        JLabel lblTre = new JLabel("Số ngày trễ:");
-        lblTre.setBounds(10, 276, 100, 30);
+        // Nút SỬA
+        btnSua = new JButton("✏️ Sửa"); 
+        btnSua.setBounds(540, 15, 100, 30);
+        btnSua.setFont(new Font("Dialog", Font.BOLD, 12));
+        add(btnSua);
+        
+        // Nút XÓA
+        btnXoa = new JButton("🗑️ Xóa"); 
+        btnXoa.setBounds(650, 15, 100, 30);
+        btnXoa.setFont(new Font("Dialog", Font.BOLD, 12));
+        add(btnXoa);
+
+        // Bảng dữ liệu - Việt
+
+        String[] columns = {"Mã NV", "Họ Tên", "Phòng Ban", "Lương Cứng", "Hệ Số", "Tổng Nhận"};     //Tạo tên cột 
+        model = new DefaultTableModel(columns, 0);                 									 //Tạo model - cái não của bảng 
+        table = new JTable(model);                             										 //Kẻ bảng
+        
+        JScrollPane sp = new JScrollPane(table); 													 //Tạo thanh cuộn
+        sp.setBounds(10, 110, 815, 300);
+        getContentPane().add(sp);
+
+        // Xử lí sự kiện: Click vào bảng - Việt
+        
+        // Ý tưởng: Khi bấm vào một dòng trong bảng, dữ liệu sẽ nhảy lên các ô nhập
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = table.getSelectedRow(); 													 // Lấy dòng đang chọn
+                if (row >= 0) {
+                    txtMaNV.setText(table.getValueAt(row, 0).toString());
+                    txtHoTen.setText(table.getValueAt(row, 1).toString());
+                    txtPhongBan.setText(table.getValueAt(row, 2).toString());
+                    
+                    // Xử lý chuỗi tiền tệ (bỏ dấu phẩy) để tránh lỗi khi sửa
+                    String luongStr = table.getValueAt(row, 3).toString().replace(",", "").replace(" VNĐ", "");
+                    txtLuongCoBan.setText(luongStr);
+                    
+                    txtHeSo.setText(table.getValueAt(row, 4).toString());
+                    
+                    txtMaNV.setEditable(false);  													  //Khóa ô Mã NV lại
+                }
+            }
+        });
+
+        // Xử lí sự kiện: Thêm, Sửa, Xóa - Việt
+
+        // Code nút THÊM
+        btnThem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // 1. Kiểm tra rỗng
+                if (txtMaNV.getText().equals("") || txtHoTen.getText().equals("")) {
+                    JOptionPane.showMessageDialog(null, "Vui lòng nhập đầy đủ thông tin!");
+                    return;
+                }
+                // 2. Kết nối và Thêm vào SQL
+                try {
+                    Connection conn = ConnectDB.getConnection();
+                    String sql = "INSERT INTO NhanVien (MaNV, HoTen, MaPB, LuongCoBan, HeSoLuong) VALUES (?, ?, ?, ?, ?)";
+                    PreparedStatement pstm = conn.prepareStatement(sql);
+                    
+                    pstm.setString(1, txtMaNV.getText());
+                    pstm.setString(2, txtHoTen.getText());
+                    pstm.setString(3, txtPhongBan.getText());
+                    pstm.setDouble(4, Double.parseDouble(txtLuongCoBan.getText()));
+                    pstm.setDouble(5, Double.parseDouble(txtHeSo.getText()));
+
+                    pstm.executeUpdate(); 																		// Thực thi lệnh thêm
+                    
+                    JOptionPane.showMessageDialog(null, "✅ Thêm thành công!");
+                    loadDataFromSQL(); 																			// Tải lại bảng ngay lập tức
+                    
+                    // Reset ô nhập về trắng
+                    txtMaNV.setText("");
+                    txtHoTen.setText("");
+                    txtLuongCoBan.setText("");
+                    txtMaNV.setEditable(true); 																	// Mở lại khóa mã NV
+                    conn.close();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "❌ Lỗi: Mã nhân viên trùng hoặc sai định dạng số!");
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        // Code nút SỬA
+        btnSua.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (txtMaNV.getText().equals("")) {
+                    JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên để sửa!");
+                    return;
+                }
+                try {
+                    Connection conn = ConnectDB.getConnection();
+                    String sql = "UPDATE NhanVien SET HoTen=?, MaPB=?, LuongCoBan=?, HeSoLuong=? WHERE MaNV=?";
+                    PreparedStatement pstm = conn.prepareStatement(sql);
+                    
+                    pstm.setString(1, txtHoTen.getText());
+                    pstm.setString(2, txtPhongBan.getText());
+                    pstm.setDouble(3, Double.parseDouble(txtLuongCoBan.getText()));
+                    pstm.setDouble(4, Double.parseDouble(txtHeSo.getText()));
+                    pstm.setString(5, txtMaNV.getText());
+
+                    pstm.executeUpdate();
+                    JOptionPane.showMessageDialog(null, "✅ Cập nhật thành công!");
+                    loadDataFromSQL();
+                    txtMaNV.setText(""); 																		 // Reset
+                    txtMaNV.setEditable(true);
+                    conn.close();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "❌ Lỗi khi sửa: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Code nút XÓA
+        btnXoa.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (txtMaNV.getText().equals("")) {
+                    JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên cần xóa!");
+                    return;
+                }
+                int hoi = JOptionPane.showConfirmDialog(null, "Bạn có chắc muốn xóa nhân viên này?", "Cảnh báo", JOptionPane.YES_NO_OPTION);
+                if (hoi != JOptionPane.YES_OPTION) return;
+
+                try {
+                    Connection conn = ConnectDB.getConnection();
+                    String sql = "DELETE FROM NhanVien WHERE MaNV=?";
+                    PreparedStatement pstm = conn.prepareStatement(sql);
+                    pstm.setString(1, txtMaNV.getText());
+                    pstm.executeUpdate();
+                    
+                    JOptionPane.showMessageDialog(null, "✅ Đã xóa thành công!");
+                    loadDataFromSQL();
+                    txtMaNV.setText("");
+                    txtHoTen.setText("");
+                    txtMaNV.setEditable(true);
+                    conn.close();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "❌ Lỗi: Không thể xóa (Có thể do dính dữ liệu lương/thưởng)");
+                }
+            }
+        });
+
+        // Chức năng Phạt - Việt
+        lblTre = new JLabel("Số ngày trễ:");
+        lblTre.setBounds(20, 420, 100, 30);
         getContentPane().add(lblTre);
         lblTre.setVisible(false);
-        txtNgayTre = new JTextField();	
-        txtNgayTre.setBounds(96, 277, 100, 30);
+        
+        txtNgayTre = new JTextField();  
+        txtNgayTre.setBounds(100, 420, 100, 30);
         getContentPane().add(txtNgayTre);
         txtNgayTre.setVisible(false);
+
+        btnPhat = new JButton("⚠️ Cập nhật Phạt");             														
+        btnPhat.setBounds(210, 420, 175, 30);                    													
+        btnPhat.setFont(new Font("Dialog", Font.BOLD, 14));
+        getContentPane().add(btnPhat);	                   
+        btnPhat.setVisible(false);
         
-        btnPhat.addActionListener(new ActionListener() {                   //Xử lí sự kiện khi bấm nút 'Cập nhật phạt'
+        // Xử lí sự kiện: Cập nhật phạt - Việt
+        btnPhat.addActionListener(new ActionListener() {                   
             public void actionPerformed(ActionEvent e) {
-                try {                 //Nếu try lỗi thì nhảy xuống catch
-                	
-                    int selectedRow = table.getSelectedRow();         //Check xem người dùng chọn dòng số mấy!
+                try {                 																	//Nếu try lỗi thì nhảy xuống catch
+                    int selectedRow = table.getSelectedRow();        									//Check xem người dùng chọn dòng số mấy
                     if (selectedRow == -1) {   //Trường hợp chưa chọn.
                         JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên cần phạt!");
-                        return;   //Phải có return để thoát khỏi sự kiện mà nhập lại từ đầu
+                        return;   
                     }
-
-                    String maNV = table.getValueAt(selectedRow, 0).toString();          //Check xem Mã nhân viên của đứa bị phạt.
-                    String strNgayTre = txtNgayTre.getText();                  //Lấy dữ liệu từ bàn phím, xem thanh niên này trễ mấy ngày.
-
+                    String maNV = table.getValueAt(selectedRow, 0).toString();          
+                    String strNgayTre = txtNgayTre.getText();                  
                     if (strNgayTre.isEmpty()) {
                         JOptionPane.showMessageDialog(null, "Vui lòng nhập số ngày trễ!");
                         return;
                     }
+                    int soNgayTre = Integer.parseInt(strNgayTre);       								//Biến đổi từ chữ sang số
 
-                    int soNgayTre = Integer.parseInt(strNgayTre);       //Biến đổi từ chữ sang số
-
-                    Connection conn = database.ConnectDB.getConnection();    //Gọi thằng ConnectDB ra để kết nối SQL Server
+                    Connection conn = ConnectDB.getConnection();    
                     String sql = "UPDATE NhanVien SET SoNgayDiTre = ? WHERE MaNV = ?";
-                    
                     PreparedStatement pst = conn.prepareStatement(sql);
                     pst.setInt(1, soNgayTre);
                     pst.setString(2, maNV);
-                    
-                    pst.executeUpdate();              //Chạy lệnh Update trên xuống Database
-                    conn.close();            //Đóng cổng kết nối!
+                    pst.executeUpdate();              												    //Chạy lệnh Update
+                    conn.close();           															//Đóng cổng kết nối!
 
-                    JOptionPane.showMessageDialog(null, "Cập nhật thành công!");
-                    loadDataFromSQL();            //Đây là một hàm dùng để load lại bảng (Nằm ở dưới)
-                    txtNgayTre.setText("");         //Xóa dữ liệu lúc trước đi cho tiện
+                    JOptionPane.showMessageDialog(null, "Cập nhật phạt thành công!");
+                    loadDataFromSQL();            
+                    txtNgayTre.setText("");         
 
-                } catch (Exception ex) {   //Trường hợp có lỗi, phần này cho mình xem mà sửa.
+                } catch (Exception ex) {   //Trường hợp có lỗi
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(null, "Lỗi: " + ex.getMessage());
                 }
             }
-            
         });
 
-		        //Hiển thị Bảng và nút Load
-		JScrollPane sp = new JScrollPane(table); //Tạo thanh cuộn
-		sp.setBounds(0, 0, 786, 277);
-		 
-		getContentPane().add(sp);
-		 	//Nút tải danh sách
-		JButton btnMoTinhLuong = new JButton("Mở Bảng Lương");
-		btnMoTinhLuong.setFont(new Font("Arial", Font.BOLD, 14));
-		btnMoTinhLuong.setBounds(0, 380, 160, 25); 
-		btnMoTinhLuong.setVisible(false);
+        // Chức năng Tăng Lương - Quốc
+        JButton btnTangLuong = new JButton("💰 Tăng lương");
+        btnTangLuong.setFont(new Font("Dialog", Font.BOLD, 14));
+        btnTangLuong.setBounds(400, 420, 150, 30);
+        getContentPane().add(btnTangLuong);
+        
+        btnTangLuong.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                 tangLuong();
+            }
+        });
 
-		getContentPane().add(btnMoTinhLuong);
-		btnMoTinhLuong.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-		    	GiaoDienChinh cuaSoTinhLuong = new GiaoDienChinh();
+        // Nút tính lương - Đồng
+        btnMoTinhLuong = new JButton("📋 Mở Bảng Lương");
+        btnMoTinhLuong.setFont(new Font("Dialog", Font.BOLD, 14));
+        btnMoTinhLuong.setBounds(570, 420, 175, 30); 
+        btnMoTinhLuong.setVisible(false);
+        getContentPane().add(btnMoTinhLuong);
+        
+        btnMoTinhLuong.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                GiaoDienChinh cuaSoTinhLuong = new GiaoDienChinh();
+                cuaSoTinhLuong.setVisible(true);
+                cuaSoTinhLuong.setLocationRelativeTo(null);
+            }
+        });
 
-		        cuaSoTinhLuong.setVisible(true);
-		        cuaSoTinhLuong.setLocationRelativeTo(null); 
-		    }
-		});
-		JButton btnLoad = new JButton("Tải danh sách từ SQL");
-		btnLoad.setBounds(0, 438, 786, 25);
-		btnLoad.setFont(new Font("Arial", Font.BOLD, 14));
-		getContentPane().add(btnLoad);
-		btnLoad.addActionListener(e -> {
-			lblTre.setVisible(true);
-	        txtNgayTre.setVisible(true);
-	        btnPhat.setVisible(true);
-	        btnMoTinhLuong.setVisible(true);
-		    loadDataFromSQL();
-		    
-		    
-		     //Nút tăng lương - Quốc
-		JButton btnTangLuong = new JButton("Tăng lương");
-		btnTangLuong.setFont(new Font("Arial", Font.BOLD, 14));
-		btnTangLuong.setBounds(636, 318, 150, 25);
-		getContentPane().add(btnTangLuong);
-		
-		btnTangLuong.addActionListener(new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		             tangLuong();
-		             
-		             
-         }
- 	});        
-});
-	}
-    private void tangLuong() {     //Hàm tăng lương - Quốc
+        // Nút thống kê - Hướng
+        JButton btnThongKe = new JButton("📊 Thống Kê");
+        btnThongKe.setBounds(570, 460, 175, 30); 
+        btnThongKe.setFont(new Font("Dialog", Font.BOLD, 14));
+        getContentPane().add(btnThongKe);
+
+        btnThongKe.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {                
+                FormThongKe fr = new FormThongKe();
+                fr.setVisible(true);
+            }
+        });
+
+        // Nút tải danh sách - Việt (Nút to ở dưới cùng)
+        btnLoad = new JButton("📂 Tải danh sách từ SQL");
+        btnLoad.setBounds(10, 500, 815, 40);
+        btnLoad.setFont(new Font("Dialog", Font.BOLD, 16));
+        getContentPane().add(btnLoad);
+        
+        btnLoad.addActionListener(e -> {
+            lblTre.setVisible(true);
+            txtNgayTre.setVisible(true);
+            btnPhat.setVisible(true);
+            btnMoTinhLuong.setVisible(true);
+            loadDataFromSQL();
+        });
+    }
+        // Hàm tăng lương - Quốc
+    private void tangLuong() {
         int row = table.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên!");
+            JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên trong bảng!");
             return;
         }
-
         String maNV = model.getValueAt(row, 0).toString();
-
-        String input = JOptionPane.showInputDialog(
-                null,
-                "Nhập % tăng lương:",
-                "Tăng lương",
-                JOptionPane.QUESTION_MESSAGE
-        );
+        String input = JOptionPane.showInputDialog(null, "Nhập % tăng lương:", "Tăng lương", JOptionPane.QUESTION_MESSAGE);
 
         if (input == null || input.trim().isEmpty()) return;
 
@@ -168,15 +352,11 @@ public class FormNhanVien extends JFrame {                                    //
                 JOptionPane.showMessageDialog(null, "Phần trăm phải > 0");
                 return;
             }
-
-            Connection conn = database.ConnectDB.getConnection();
-
+            Connection conn = ConnectDB.getConnection();
             String sql = "UPDATE NhanVien SET LuongCoBan = LuongCoBan * (1 + ? / 100) WHERE MaNV = ?";
-
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setDouble(1, percent);
             ps.setString(2, maNV);
-
             int kq = ps.executeUpdate();
             conn.close();
 
@@ -186,7 +366,6 @@ public class FormNhanVien extends JFrame {                                    //
             } else {
                 JOptionPane.showMessageDialog(null, "Không tìm thấy nhân viên!");
             }
-
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Vui lòng nhập số!");
         } catch (Exception e) {
@@ -194,18 +373,19 @@ public class FormNhanVien extends JFrame {                                    //
             JOptionPane.showMessageDialog(null, "Lỗi: " + e.getMessage());
         }
     }
-    private void loadDataFromSQL() {   //Hàm load lại bảng!
-        try {
-            String[] columns = {            //Bỏ cái columns cũ đi, thay bằng cái mới!
+    		// Hàm tải lại bảng - Việt
+    private void loadDataFromSQL() { 
+        try {	
+            String[] columns = {            																//Bỏ cái columns cũ đi, thay bằng cái mới!
                 "Mã NV", "Họ Tên", "Phòng", 
                 "Lương Cứng", "Hệ Số", "Thưởng", 
                 "Đi Trễ", "Tiền Phạt", "Thực Lĩnh" 
             };
-            model = new DefaultTableModel(columns, 0);    //Thay "não" mới
-            table.setModel(model);   //Gắn "não" vào bảng mới
+            model = new DefaultTableModel(columns, 0);    													//Thay model mới
+            table.setModel(model);   																		//Gắn model vào bảng mới
 
-            Connection conn = database.ConnectDB.getConnection();
-            
+            Connection conn = ConnectDB.getConnection();
+        
             String sql = "SELECT MaNV, HoTen, MaPB, LuongCoBan, HeSoLuong, TienThuong, SoNgayDiTre, " +
                          "(SoNgayDiTre * 100000) AS TienPhat, " +
                          "((LuongCoBan * HeSoLuong) + PhuCap + TienThuong - (SoNgayDiTre * 100000)) AS ThucLinh " +
@@ -219,26 +399,24 @@ public class FormNhanVien extends JFrame {                                    //
                 row.add(rs.getString("MaNV"));
                 row.add(rs.getString("HoTen"));
                 row.add(rs.getString("MaPB"));
-                row.add(rs.getLong("LuongCoBan"));
+                // Định dạng tiền tệ đơn giản
+                row.add(String.format("%,d", rs.getLong("LuongCoBan"))); 
                 row.add(rs.getFloat("HeSoLuong"));
-                row.add(rs.getLong("TienThuong"));
+                row.add(String.format("%,d", rs.getLong("TienThuong")));
                 row.add(rs.getInt("SoNgayDiTre") + " ngày");
-                row.add(rs.getLong("TienPhat"));
-                row.add(rs.getLong("ThucLinh"));
+                row.add(String.format("%,d", rs.getLong("TienPhat")));
+                row.add(String.format("%,d", rs.getLong("ThucLinh")));
                 
                 model.addRow(row);
             }
-            
             conn.close();
-            
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null, "Lỗi tải dữ liệu: " + ex.getMessage());
         }
     }
 
-    public static void main(String[] args) {     //Hàm main đây rồi
-
+    public static void main(String[] args) {     															//Hàm main đây rồi
         new FormNhanVien().setVisible(true);
     }
 }
