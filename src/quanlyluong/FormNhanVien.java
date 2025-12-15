@@ -453,7 +453,18 @@ public class FormNhanVien extends JFrame {                                    //
         }
     }
 
-    public static void main(String[] args) {     															//Hàm main đây rồi
-        new FormNhanVien().setVisible(true);
+    public static void main(String[] args) {
+        
+        try {
+            javax.swing.UIManager.put("Label.font", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+            javax.swing.UIManager.put("Button.font", new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+            javax.swing.UIManager.put("TextField.font", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+            javax.swing.UIManager.put("Table.font", new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14));
+            javax.swing.UIManager.put("TableHeader.font", new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        } catch (Exception e) {}
+        FormDangNhap loginScreen = new FormDangNhap();
+        loginScreen.setVisible(true);            
+        loginScreen.setLocationRelativeTo(null); 
+    
     }
 }
