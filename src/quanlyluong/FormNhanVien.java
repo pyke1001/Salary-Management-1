@@ -20,7 +20,11 @@ public class FormNhanVien extends JFrame {                                    //
     DefaultTableModel model;                                                   
     JTextField txtNgayTre;                                                    
     JLabel lblTre;
-    JButton btnThem, btnSua, btnXoa,btnPhat,btnLoad,btnMoTinhLuong;
+    JButton btnThem, btnSua, btnXoa, btnPhat, btnLoad, btnMoTinhLuong;
+    
+    // Khai báo thêm các biến này ra ngoài để xử lý ẩn/hiện
+    private JLabel lblMa, lblTen, lblPhong, lblLuong, lblHS;
+    private JButton btnLamMoi, btnTangLuong, btnThongKe;
     																		  //Khai báo biến
     private JTextField txtMaNV;
     private JTextField txtHoTen;
@@ -39,42 +43,42 @@ public class FormNhanVien extends JFrame {                                    //
         //Tạo ô nhập liệu - Việt
         
         // Hàng 1: Mã NV + Họ Tên
-        JLabel lblMa = new JLabel("Mã NV:");
+        lblMa = new JLabel("Mã NV:");
         lblMa.setBounds(20, 20, 80, 25);
-        add(lblMa);
+        getContentPane().add(lblMa);
         txtMaNV = new JTextField();
         txtMaNV.setBounds(80, 20, 100, 25);
-        add(txtMaNV);
+        getContentPane().add(txtMaNV);
 
-        JLabel lblTen = new JLabel("Họ Tên:");
+        lblTen = new JLabel("Họ Tên:");
         lblTen.setBounds(200, 20, 80, 25);
-        add(lblTen);
+        getContentPane().add(lblTen);
         txtHoTen = new JTextField();
         txtHoTen.setBounds(260, 20, 150, 25);
-        add(txtHoTen);
+        getContentPane().add(txtHoTen);
 
         // Hàng 2: Phòng ban + Lương Cứng
-        JLabel lblPhong = new JLabel("Phòng:");
+        lblPhong = new JLabel("Phòng:");
         lblPhong.setBounds(20, 60, 80, 25);
-        add(lblPhong);
+        getContentPane().add(lblPhong);
         txtPhongBan = new JTextField();
         txtPhongBan.setBounds(80, 60, 100, 25);
-        add(txtPhongBan);
+        getContentPane().add(txtPhongBan);
 
-        JLabel lblLuong = new JLabel("Lương:");
+        lblLuong = new JLabel("Lương:");
         lblLuong.setBounds(200, 60, 80, 25);
-        add(lblLuong);
+        getContentPane().add(lblLuong);
         txtLuongCoBan = new JTextField();
         txtLuongCoBan.setBounds(260, 60, 150, 25);
-        add(txtLuongCoBan);
+        getContentPane().add(txtLuongCoBan);
 
         // Hàng 3: Hệ số
-        JLabel lblHS = new JLabel("Hệ số:");
+        lblHS = new JLabel("Hệ số:");
         lblHS.setBounds(430, 60, 50, 25);
-        add(lblHS);
+        getContentPane().add(lblHS);
         txtHeSo = new JTextField();
         txtHeSo.setBounds(480, 60, 50, 25);
-        add(txtHeSo);
+        getContentPane().add(txtHeSo);
 
         //Thao tác cơ bản - Việt
         
@@ -82,19 +86,25 @@ public class FormNhanVien extends JFrame {                                    //
         btnThem = new JButton("➕ Thêm"); 
         btnThem.setBounds(430, 15, 100, 30);
         btnThem.setFont(new Font("Dialog", Font.BOLD, 12));
-        add(btnThem);
+        getContentPane().add(btnThem);
         
         // Nút SỬA
         btnSua = new JButton("✏️ Sửa"); 
         btnSua.setBounds(540, 15, 100, 30);
         btnSua.setFont(new Font("Dialog", Font.BOLD, 12));
-        add(btnSua);
+        getContentPane().add(btnSua);
         
         // Nút XÓA
         btnXoa = new JButton("🗑️ Xóa"); 
         btnXoa.setBounds(650, 15, 100, 30);
         btnXoa.setFont(new Font("Dialog", Font.BOLD, 12));
-        add(btnXoa);
+        getContentPane().add(btnXoa);
+        
+        // Nút LÀM MỚI - Tùng
+        btnLamMoi = new JButton("🔄 Làm mới");
+        btnLamMoi.setBounds(650, 56, 100, 30); // Chỉnh tọa độ cho nằm cạnh nút Xóa
+        btnLamMoi.setFont(new Font("Dialog", Font.BOLD, 12));
+        getContentPane().add(btnLamMoi);
 
         // Bảng dữ liệu - Việt
 
@@ -226,23 +236,34 @@ public class FormNhanVien extends JFrame {                                    //
                 }
             }
         });
+        
+        // Xử lí sự kiện: Làm mới - Tùng 
+        
+        // Code nút LÀM MỚI
+        btnLamMoi.addActionListener(e -> {
+            
+            txtMaNV.setText("");
+            txtHoTen.setText("");
+            txtPhongBan.setText("");
+            txtLuongCoBan.setText("");
+            txtHeSo.setText("");
+            txtMaNV.setEditable(true);
+            table.clearSelection();
+        });
 
         // Chức năng Phạt - Việt
         lblTre = new JLabel("Số ngày trễ:");
         lblTre.setBounds(20, 420, 100, 30);
         getContentPane().add(lblTre);
-        lblTre.setVisible(false);
         
         txtNgayTre = new JTextField();  
         txtNgayTre.setBounds(100, 420, 100, 30);
         getContentPane().add(txtNgayTre);
-        txtNgayTre.setVisible(false);
 
         btnPhat = new JButton("⚠️ Cập nhật Phạt");             														
         btnPhat.setBounds(210, 420, 175, 30);                    													
         btnPhat.setFont(new Font("Dialog", Font.BOLD, 14));
         getContentPane().add(btnPhat);	                   
-        btnPhat.setVisible(false);
         
         // Xử lí sự kiện: Cập nhật phạt - Việt
         btnPhat.addActionListener(new ActionListener() {                   
@@ -281,7 +302,7 @@ public class FormNhanVien extends JFrame {                                    //
         });
 
         // Chức năng Tăng Lương - Quốc
-        JButton btnTangLuong = new JButton("💰 Tăng lương");
+        btnTangLuong = new JButton("💰 Tăng lương");
         btnTangLuong.setFont(new Font("Dialog", Font.BOLD, 14));
         btnTangLuong.setBounds(400, 420, 150, 30);
         getContentPane().add(btnTangLuong);
@@ -296,7 +317,6 @@ public class FormNhanVien extends JFrame {                                    //
         btnMoTinhLuong = new JButton("📋 Mở Bảng Lương");
         btnMoTinhLuong.setFont(new Font("Dialog", Font.BOLD, 14));
         btnMoTinhLuong.setBounds(570, 420, 175, 30); 
-        btnMoTinhLuong.setVisible(false);
         getContentPane().add(btnMoTinhLuong);
         
         btnMoTinhLuong.addActionListener(new ActionListener() {
@@ -308,7 +328,7 @@ public class FormNhanVien extends JFrame {                                    //
         });
 
         // Nút thống kê - Hướng
-        JButton btnThongKe = new JButton("📊 Thống Kê");
+        btnThongKe = new JButton("📊 Thống Kê");
         btnThongKe.setBounds(570, 460, 175, 30); 
         btnThongKe.setFont(new Font("Dialog", Font.BOLD, 14));
         getContentPane().add(btnThongKe);
@@ -326,14 +346,31 @@ public class FormNhanVien extends JFrame {                                    //
         btnLoad.setFont(new Font("Dialog", Font.BOLD, 16));
         getContentPane().add(btnLoad);
         
+        // Ẩn giao diện ban đầu
+        setHienThi(false);
+        
         btnLoad.addActionListener(e -> {
-            lblTre.setVisible(true);
-            txtNgayTre.setVisible(true);
-            btnPhat.setVisible(true);
-            btnMoTinhLuong.setVisible(true);
+            // Hiện lại giao diện khi bấm Load
+            setHienThi(true);
             loadDataFromSQL();
         });
     }
+
+    private void setHienThi(boolean hien) {
+        // Ẩn/Hiện Label
+        lblMa.setVisible(hien); lblTen.setVisible(hien); lblPhong.setVisible(hien);
+        lblLuong.setVisible(hien); lblHS.setVisible(hien); lblTre.setVisible(hien);
+        
+        // Ẩn/Hiện Text
+        txtMaNV.setVisible(hien); txtHoTen.setVisible(hien); txtPhongBan.setVisible(hien);
+        txtLuongCoBan.setVisible(hien); txtHeSo.setVisible(hien); txtNgayTre.setVisible(hien);
+        
+        // Ẩn/Hiện Button
+        btnThem.setVisible(hien); btnSua.setVisible(hien); btnXoa.setVisible(hien);
+        btnLamMoi.setVisible(hien); btnPhat.setVisible(hien); btnTangLuong.setVisible(hien);
+        btnMoTinhLuong.setVisible(hien); btnThongKe.setVisible(hien);
+    }
+
         // Hàm tăng lương - Quốc
     private void tangLuong() {
         int row = table.getSelectedRow();
