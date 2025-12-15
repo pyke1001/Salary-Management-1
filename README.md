@@ -12,10 +12,10 @@ Phần mềm hỗ trợ quản lý hồ sơ nhân viên và tính lương tự �
 - **Layout:** Sử dụng kết hợp Absolute Layout (Kéo thả) và FlowLayout.
 
 ## 2. ✨ TÍNH NĂNG HOT
-✅ **Đăng nhập Konami:** Gõ `↑ ↑ ↓ ↓ ← → ← → B A` để vào thẳng Admin.
-✅ **Quản lý nhân sự:** Thêm, Sửa, Xóa, Tìm kiếm nhân viên.
-✅ **Tính lương tự động:** Lương = (Lương cứng * Hệ số) + Thưởng - Phạt.
-✅ **Phạt đi trễ:** Tự động trừ 100k/ngày đi trễ.
+* ✅ **Đăng nhập Konami:** Gõ `↑ ↑ ↓ ↓ ← → ← → B A` để vào thẳng Admin.
+* ✅ **Quản lý nhân sự:** Thêm, Sửa, Xóa, Tìm kiếm nhân viên.
+* ✅ **Tính lương tự động:** Lương = (Lương cứng * Hệ số) + Thưởng - Phạt.
+* ✅ **Phạt đi trễ:** Tự động trừ 100k/ngày đi trễ.
 
 ## 3. 👥 PHÂN CÔNG (CREDITS)
 
