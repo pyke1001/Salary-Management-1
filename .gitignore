@@ -1,0 +1,13 @@
+# Bỏ qua các file biên dịch class
+*.class
+
+# Bỏ qua thư mục bin (nơi Eclipse lưu file chạy, không cần up lên Git)
+bin/
+
+# Bỏ qua các file cấu hình riêng của Eclipse
+.settings/
+.classpath
+.project
+
+# Bỏ qua file hệ thống Windows (nếu có)
+Thumbs.db
