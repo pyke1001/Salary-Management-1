@@ -1,48 +1,49 @@
-// Chức năng đăng nhập - Việt
 package quanlyluong;
-
+																		//Login - Việt
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import database.ConnectDB; // Import file kết nối của bạn
+import java.sql.*;
+import database.ConnectDB;
 
 public class FormDangNhap extends JFrame {
+	
+	private static final long serialVersionUID = 1L;
 
     private JTextField txtUser;
     private JPasswordField txtPass;
     private JButton btnLogin, btnThoat;
-
-    // K0N4M1
+    
+    // Logic Konami Code
     private final int[] KONAMI_CODE = {
-        KeyEvent.VK_UP, KeyEvent.VK_UP, 
-        KeyEvent.VK_DOWN, KeyEvent.VK_DOWN, 
-        KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, 
-        KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, 
+        KeyEvent.VK_UP, KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_DOWN, 
+        KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, 
         KeyEvent.VK_B, KeyEvent.VK_A
     };
     private int currentPosition = 0;
 
     public FormDangNhap() {
-    	ToolTipManager.sharedInstance().setInitialDelay(0);
-    	
+        initUI();
+        initEvents();
+    }
+
+    private void initUI() {
+        ToolTipManager.sharedInstance().setInitialDelay(0);
         setTitle("Đăng Nhập Hệ Thống");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
-        getContentPane().setBackground(new Color(240, 248, 255)); // Màu nền nhẹ
+        getContentPane().setBackground(new Color(240, 248, 255));
 
-        // Logo hoặc Tiêu đề
+        // Tiêu đề
         JLabel lblTitle = new JLabel("LOGIN SYSTEM", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(Color.BLUE);
         lblTitle.setBounds(0, 20, 400, 40);
         add(lblTitle);
 
-        // Ô nhập User
+        // Username
         JLabel lblUser = new JLabel("Tài khoản:");
         lblUser.setBounds(40, 80, 80, 25);
         add(lblUser);
@@ -51,7 +52,7 @@ public class FormDangNhap extends JFrame {
         txtUser.setBounds(120, 80, 200, 25);
         add(txtUser);
 
-        // Ô nhập Password
+        // Password
         JLabel lblPass = new JLabel("Mật khẩu:");
         lblPass.setBounds(40, 120, 80, 25);
         add(lblPass);
@@ -60,65 +61,52 @@ public class FormDangNhap extends JFrame {
         txtPass.setBounds(120, 120, 200, 25);
         add(txtPass);
 
-        // Nút Đăng nhập
+        // Buttons
         btnLogin = new JButton("Đăng Nhập");
         btnLogin.setBounds(120, 170, 100, 30);
-        btnLogin.setBackground(new Color(46, 204, 113)); // Xanh lá
+        btnLogin.setBackground(new Color(46, 204, 113));
         btnLogin.setForeground(Color.WHITE);
         add(btnLogin);
 
-        // Nút Thoát
         btnThoat = new JButton("Thoát");
         btnThoat.setBounds(230, 170, 90, 30);
-        btnThoat.setBackground(new Color(231, 76, 60)); // Đỏ
+        btnThoat.setBackground(new Color(231, 76, 60));
         btnThoat.setForeground(Color.WHITE);
         add(btnThoat);
 
-        // Sự kiện nút Đăng Nhập
+        // Hint Label
+        JLabel lblHint = new JLabel("HINT: ↑ ↑ ↓ ↓ ← → ← → B A", SwingConstants.CENTER);
+        lblHint.setBounds(0, 230, 400, 20);
+        lblHint.setFont(new Font("Segoe UI", Font.ITALIC, 10));
+        lblHint.setForeground(new Color(150, 150, 150));
+        lblHint.setToolTipText("Try it!");
+        add(lblHint);
+    }
+
+    private void initEvents() {
         btnLogin.addActionListener(e -> xuLyDangNhap());
-
-        // Sự kiện nút Thoát
         btnThoat.addActionListener(e -> System.exit(0));
+        txtPass.addActionListener(e -> xuLyDangNhap()); // Enter để login
 
-        // Sự kiện nút...
+        // Konami Code Listener
         KeyListener konamiListener = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 checkKonamiCode(e.getKeyCode());
             }
         };
-        //Thêm cái này để Enter cho lẹ
-        txtPass.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                xuLyDangNhap();
-            }
-        });
-        
         txtUser.addKeyListener(konamiListener);
         txtPass.addKeyListener(konamiListener);
         this.addKeyListener(konamiListener);
-        
+
+        // Focus logic
         this.setFocusable(true);
         this.addWindowListener(new WindowAdapter() {
-            @Override
             public void windowOpened(WindowEvent e) {
                 txtUser.requestFocusInWindow();
             }
         });
-        JLabel lblHint = new JLabel("HINT: ↑ ↑ ↓ ↓ ← → ← → B A", SwingConstants.CENTER);
-        
-        lblHint.setBounds(0, 230, 400, 20); 
-        
-        lblHint.setFont(new Font("Segoe UI", Font.ITALIC, 10)); 
-        
-        lblHint.setForeground(new Color(150, 150, 150)); 
-        
-        add(lblHint);
-
-        lblHint.setToolTipText("Try it!");
     }
-
-    // Hàm xử lí logic
 
     private void xuLyDangNhap() {
         String u = txtUser.getText();
@@ -150,36 +138,29 @@ public class FormDangNhap extends JFrame {
         }
     }
 
-    // Hàm kiểm tra K0N4M1
     private void checkKonamiCode(int keyCode) {
-        // Nếu phím bấm trùng với ký tự tiếp theo trong chuỗi K0N4M1
         if (keyCode == KONAMI_CODE[currentPosition]) {
-            currentPosition++; // Nhảy sang ký tự tiếp theo
-            
-            // Nếu đã bấm đúng hết toàn bộ chuỗi
+            currentPosition++;
             if (currentPosition == KONAMI_CODE.length) {
-                kichHoatCheDoThanThanh();
-                currentPosition = 0; // Reset lại từ đầu
+                kichHoatKonami();
+                currentPosition = 0;
             }
         } else {
-            // Nếu bấm sai 1 phát là reset về 0 luôn (Phải bấm lại từ đầu)
             currentPosition = 0;
         }
     }
 
-    private void kichHoatCheDoThanThanh() {
-        // Hiệu ứng "Easter Egg"
-        Toolkit.getDefaultToolkit().beep(); // Tiếng bíp hệ thống
+    private void kichHoatKonami() {
+        Toolkit.getDefaultToolkit().beep();
         JOptionPane.showMessageDialog(this, 
             "㊙️ KONAMI CODE ACTIVATED! ㊙️\n Bạn đã nhận được quyền Admin!", 
             "Cheat Code", JOptionPane.INFORMATION_MESSAGE);
-            
         moGiaoDienChinh();
     }
 
     private void moGiaoDienChinh() {
-        this.dispose(); // Đóng form đăng nhập
-        new FormNhanVien().setVisible(true); // Mở form chính của bạn
+        this.dispose();
+        new FormNhanVien().setVisible(true);
     }
 
     public static void main(String[] args) {

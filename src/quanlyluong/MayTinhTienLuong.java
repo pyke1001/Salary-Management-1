@@ -1,6 +1,5 @@
-//Tính tiền lương - Đồng
 package quanlyluong;
-
+																	//Tính Lương - Đồng
 public class MayTinhTienLuong {
 
     public static double tinhTongLuong(double luong1Gio, double gioChuan,  //Nên giải thích tại sao lại dùng public static ở đây!

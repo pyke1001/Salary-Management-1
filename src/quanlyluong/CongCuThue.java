@@ -1,6 +1,5 @@
-//Tính thuế - Tùng
 package quanlyluong;
-
+																		// Thuế - Tùng
 public class CongCuThue {
 
     // Hàm tính tiền bảo hiểm (10.5% lương)
