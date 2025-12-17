@@ -12,3 +12,5 @@ bin/
 # Bỏ qua file hệ thống Windows (nếu có)
 Thumbs.db
 quanlyluong.jar
+# Bỏ qua file chạy
+*.jar
