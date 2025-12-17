@@ -1,4 +1,4 @@
-package quanlyluong;
+package ui;
 																		// View - Việt
 import java.awt.Color;
 import java.awt.Font;

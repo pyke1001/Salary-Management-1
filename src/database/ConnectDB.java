@@ -77,7 +77,7 @@ public class ConnectDB {
         panel.add(new JLabel("Password:"));     panel.add(txtPass);
 
         int result = JOptionPane.showConfirmDialog(null, panel, 
-                "⚠️ Lỗi kết nối CSDL! Vui lòng cấu hình lại:", 
+                "⚠️ Lỗi kết nối CSDL! Vui lòng thử lại", 
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {

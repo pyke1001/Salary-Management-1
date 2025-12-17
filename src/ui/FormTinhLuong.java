@@ -1,9 +1,10 @@
-package quanlyluong;
-																	// Giao diện Tính Lương - Đồng, Tùng
+package ui;
+																		// Giao diện Tính lương - Đồng
 import javax.swing.*;
 import java.awt.*;
+import logic.MayTinhLuong;
 
-public class GiaoDienChinh extends JFrame {
+public class FormTinhLuong extends JFrame {
     
     private static final long serialVersionUID = 1L;
 
@@ -12,22 +13,20 @@ public class GiaoDienChinh extends JFrame {
     private JTextArea txtKetQua;
     private JButton btnTinhLuong;
 
-    public GiaoDienChinh() {
+    public FormTinhLuong() {
         initUI();
         initEvents();
     }
 
-    // 1. Hàm khởi tạo giao diện
     private void initUI() {
         setTitle("Tính Lương Nhân Viên");
         setSize(1000, 200);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Chỉ đóng cửa sổ này, không tắt app
-        setLayout(new FlowLayout(FlowLayout.CENTER, 15, 20)); // Căn giữa, khoảng cách thoáng hơn
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
+        setLayout(new FlowLayout(FlowLayout.CENTER, 15, 20)); 
         setLocationRelativeTo(null); 
 
-        // Thêm các thành phần nhập liệu
         add(new JLabel("Lương 1 giờ:"));
-        txtLuongMotGio = new JTextField("100000", 8); // Cho sẵn giá trị mặc định test cho lẹ
+        txtLuongMotGio = new JTextField("100000", 8); 
         add(txtLuongMotGio);
 
         add(new JLabel("Giờ làm chuẩn:"));
@@ -45,43 +44,34 @@ public class GiaoDienChinh extends JFrame {
         chkNghiThaiSan = new JCheckBox("Nghỉ thai sản?");
         add(chkNghiThaiSan);
 
-        // Nút tính lương
         btnTinhLuong = new JButton("💵 Tính Lương");
-        // Dùng font Segoe UI cho đồng bộ với mấy file kia
         btnTinhLuong.setFont(new Font("Dialog", Font.BOLD, 14)); 
         add(btnTinhLuong);
 
-        // Ô kết quả
         txtKetQua = new JTextArea(3, 40);
-        txtKetQua.setEditable(false); // Chỉ cho xem, không cho sửa
+        txtKetQua.setEditable(false); 
         add(new JScrollPane(txtKetQua));
     }
 
-    // 2. Hàm bắt sự kiện
     private void initEvents() {
         btnTinhLuong.addActionListener(e -> xuLyTinhLuong());
     }
 
-    // 3. Hàm xử lý logic tính toán
     private void xuLyTinhLuong() {
         try {
-            // Lấy dữ liệu từ ô nhập
             double luong1Gio = Double.parseDouble(txtLuongMotGio.getText());
             double gioChuan  = Double.parseDouble(txtGioLamChuan.getText());
             double gioTangCa = Double.parseDouble(txtGioTangCa.getText());
             double heSo      = Double.parseDouble(txtHeSoTangCa.getText());
             boolean dangNghiThaiSan = chkNghiThaiSan.isSelected();
 
-            //Gọi class xử lí Logic
-            
-            double tongLuongGross = MayTinhTienLuong.tinhTongLuong(luong1Gio, gioChuan, gioTangCa, heSo, dangNghiThaiSan);
+            double tongLuongGross = MayTinhLuong.tinhTongLuong(luong1Gio, gioChuan, gioTangCa, heSo, dangNghiThaiSan);
 
             int soNguoiPhuThuoc = 0; 
-            double tienBaoHiem = CongCuThue.tinhBaoHiem(tongLuongGross);
-            double tienThue = CongCuThue.tinhThueTNCN(tongLuongGross, soNguoiPhuThuoc);
+            double tienBaoHiem = MayTinhLuong.tinhBaoHiem(tongLuongGross);
+            double tienThue = MayTinhLuong.tinhThueTNCN(tongLuongGross, soNguoiPhuThuoc);
             double thucLinh = tongLuongGross - tienBaoHiem - tienThue;
             
-            // Format hiển thị
             String chiTiet = String.format(
                 "Tổng lương (Gross): %,.0f VNĐ\n" +
                 "Bảo hiểm (10.5%%): -%,.0f VNĐ\n" +
@@ -91,10 +81,7 @@ public class GiaoDienChinh extends JFrame {
                 tongLuongGross, tienBaoHiem, tienThue, thucLinh
             );
 
-            // Hiện popup thông báo
             JOptionPane.showMessageDialog(this, chiTiet, "Kết Quả Tính Lương", JOptionPane.INFORMATION_MESSAGE);
-
-            // Ghi vào ô text area
             txtKetQua.setText(chiTiet);
 
         } catch (NumberFormatException ex) {

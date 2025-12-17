@@ -1,5 +1,5 @@
-package quanlyluong;
-																		//Controller - Cả nhóm
+package ui;
+																					//Controller - Cả nhóm
 import java.awt.Color;
 import java.awt.Font;
 // Controller - Cả nhóm
@@ -16,6 +16,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+
+import dao.NhanVienDAO;
+import entity.NhanVien;
+
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JPasswordField;
@@ -276,7 +280,7 @@ public class FormNhanVien extends NhanVienUI {
         btnTangLuong.addActionListener(e -> tangLuong());               			// Xử lí sự kiện: 'Tăng lương' - Quốc
 
         btnMoTinhLuong.addActionListener(e -> {                         			// Xử lí sự kiện: 'Mở Bảng Lương' - Đồng
-            GiaoDienChinh cuaSoTinhLuong = new GiaoDienChinh();
+            FormTinhLuong cuaSoTinhLuong = new FormTinhLuong();
             cuaSoTinhLuong.setVisible(true);
             cuaSoTinhLuong.setLocationRelativeTo(null);
         });
@@ -618,10 +622,5 @@ public class FormNhanVien extends NhanVienUI {
         boLocDuLieu.run();
 
         dialog.setVisible(true);
-    }
-    public static void main(String[] args) {                            			// Hàm main - Việt
-        FormDangNhap loginScreen = new FormDangNhap();
-        loginScreen.setVisible(true);            
-        loginScreen.setLocationRelativeTo(null); 
     }
 }

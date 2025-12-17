@@ -1,5 +1,5 @@
-package quanlyluong;
-																		// Model (Data Access) - Việt, Quốc
+package dao;
+																				// Model (Data Access) - Việt, Quốc
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import database.ConnectDB;
+import entity.NhanVien;
 
 public class NhanVienDAO {
 

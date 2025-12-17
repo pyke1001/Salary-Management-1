@@ -1,4 +1,4 @@
-package quanlyluong;
+package dao;
 																	// Thống Kê Database - Hướng
 import java.sql.*;
 import database.ConnectDB;

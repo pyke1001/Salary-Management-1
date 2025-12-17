@@ -1,27 +1,33 @@
-package quanlyluong;
-																		// Thuế - Tùng
-public class CongCuThue {
+package logic;
+																		// Tính Lương - Đồng, Tùng
+public class MayTinhLuong {
+																		
+    public static double tinhTongLuong(double luong1Gio, double gioChuan, double gioTangCa, double heSoTangCa, boolean coNghiThaiSan) {	// Tổng lương - Đồng
+        double troCapThaiSan = 0;
+        double luongChuan = gioChuan * luong1Gio;
+        double luongTangCa = gioTangCa * luong1Gio * heSoTangCa;
 
-    // Hàm tính tiền bảo hiểm (10.5% lương)
-    public static double tinhBaoHiem(double tongLuong) {
-        return tongLuong * 0.105; 
+        if (coNghiThaiSan) {
+            troCapThaiSan = 10000000;
+            luongChuan = 0;
+            luongTangCa = 0;
+        }
+
+        return luongChuan + luongTangCa + troCapThaiSan;
     }
 
-    // Hàm tính thuế TNCN (Theo 7 bậc lũy tiến chuẩn VN)
-    public static double tinhThueTNCN(double tongLuong, int soNguoiPhuThuoc) {
-        // 1. Trừ tiền bảo hiểm trước
+    public static double tinhBaoHiem(double tongLuong) {							// Bảo hiểm - Đồng
+        return tongLuong * 0.105;
+    }
+
+    public static double tinhThueTNCN(double tongLuong, int soNguoiPhuThuoc) {		// Thuế - Tùng
         double tienBaoHiem = tinhBaoHiem(tongLuong);
-        
-        // 2. Tính các khoản giảm trừ
         double giamTruBanThan = 11000000;
         double giamTruPhuThuoc = soNguoiPhuThuoc * 4400000;
-        
-        // 3. Tính thu nhập chịu thuế
         double thuNhapTinhThue = tongLuong - tienBaoHiem - giamTruBanThan - giamTruPhuThuoc;
-        
-        if (thuNhapTinhThue <= 0) return 0; // Không phải đóng thuế
 
-        // 4. Tính thuế theo bậc thang
+        if (thuNhapTinhThue <= 0) return 0;
+
         double thuePhaiDong = 0;
         if (thuNhapTinhThue <= 5000000) {
             thuePhaiDong = thuNhapTinhThue * 0.05;
@@ -38,7 +44,7 @@ public class CongCuThue {
         } else {
             thuePhaiDong = (thuNhapTinhThue * 0.35) - 9850000;
         }
-        
+
         return thuePhaiDong;
     }
 }

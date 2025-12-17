@@ -1,4 +1,4 @@
-package quanlyluong;
+package ui;
 																	// Login - Việt
 import java.awt.Color;
 import java.awt.Font;
@@ -12,7 +12,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-//Login - Việt
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -199,6 +198,8 @@ public class FormDangNhap extends JFrame {
     }
 
     public static void main(String[] args) {												// Hàm main
-        new FormDangNhap().setVisible(true);
+        FormDangNhap loginScreen = new FormDangNhap();
+        loginScreen.setVisible(true);
+        loginScreen.setLocationRelativeTo(null);
     }
 }

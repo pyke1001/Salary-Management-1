@@ -1,4 +1,4 @@
-package quanlyluong;
+package entity;
 																	// Model (Entity) - Việt
 public class NhanVien {
     private String maNV;

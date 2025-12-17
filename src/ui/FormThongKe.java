@@ -1,6 +1,9 @@
-package quanlyluong;
+package ui;
 																	// Giao diện Thống Kê - Hướng
 import javax.swing.*;
+
+import dao.ThongKeDAO;
+
 import java.awt.*;
 
 public class FormThongKe extends JFrame {
@@ -79,15 +82,5 @@ public class FormThongKe extends JFrame {
         pn.add(lblTitle);
         pn.add(lblValue);
         return pn;
-    }
-    
-    public static void main(String[] args) {
-        // Fix font hiển thị đẹp
-        try {
-            UIManager.put("Label.font", new Font("Segoe UI", Font.PLAIN, 14));
-            UIManager.put("Button.font", new Font("Segoe UI", Font.BOLD, 14));
-        } catch (Exception e) {}
-
-        new FormThongKe().setVisible(true);
     }
 }
