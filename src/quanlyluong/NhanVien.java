@@ -1,5 +1,5 @@
 package quanlyluong;
-																	// Model - Việt
+																	// Model (Entity) - Việt
 public class NhanVien {
     private String maNV;
     private String hoTen;
@@ -10,6 +10,7 @@ public class NhanVien {
     private int soNgayDiTre;
     private long tienPhat;
     private long thucLinh;
+    private String tenPB;
 
     public NhanVien() {
     }
@@ -60,4 +61,7 @@ public class NhanVien {
 
     public long getThucLinh() { return thucLinh; }
     public void setThucLinh(long thucLinh) { this.thucLinh = thucLinh; }
+
+    public String getTenPB() { return tenPB; }
+    public void setTenPB(String tenPB) { this.tenPB = tenPB; }
 }

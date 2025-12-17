@@ -1,5 +1,5 @@
 package quanlyluong;
-																	// Giao diện Tính Lương - Quốc, Tùng
+																	// Giao diện Tính Lương - Đồng, Tùng
 import javax.swing.*;
 import java.awt.*;
 
@@ -48,7 +48,7 @@ public class GiaoDienChinh extends JFrame {
         // Nút tính lương
         btnTinhLuong = new JButton("💵 Tính Lương");
         // Dùng font Segoe UI cho đồng bộ với mấy file kia
-        btnTinhLuong.setFont(new Font("Segoe UI", Font.BOLD, 14)); 
+        btnTinhLuong.setFont(new Font("Dialog", Font.BOLD, 14)); 
         add(btnTinhLuong);
 
         // Ô kết quả
