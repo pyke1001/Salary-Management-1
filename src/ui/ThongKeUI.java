@@ -6,11 +6,11 @@ import dao.ThongKeDAO;
 
 import java.awt.*;
 
-public class FormThongKe extends JFrame {
+public class ThongKeUI extends JFrame {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
-    public FormThongKe() {
+    public ThongKeUI() {
         initUI();
         loadAndShowData();
     }

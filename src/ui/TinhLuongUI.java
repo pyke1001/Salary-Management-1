@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import logic.MayTinhLuong;
 
-public class FormTinhLuong extends JFrame {
+public class TinhLuongUI extends JFrame {
     
     private static final long serialVersionUID = 1L;
 
@@ -13,7 +13,7 @@ public class FormTinhLuong extends JFrame {
     private JTextArea txtKetQua;
     private JButton btnTinhLuong;
 
-    public FormTinhLuong() {
+    public TinhLuongUI() {
         initUI();
         initEvents();
     }

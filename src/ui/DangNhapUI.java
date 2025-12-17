@@ -23,7 +23,7 @@ import javax.swing.ToolTipManager;
 
 import database.ConnectDB;
 
-public class FormDangNhap extends JFrame {
+public class DangNhapUI extends JFrame {
 	
 	private static final long serialVersionUID = 2L;
 
@@ -38,7 +38,7 @@ public class FormDangNhap extends JFrame {
     };
     private int currentPosition = 0;
 
-    public FormDangNhap() {																	// Hàm khởi tạo
+    public DangNhapUI() {																	// Hàm khởi tạo
         initUI();
         initEvents();
     }
@@ -108,7 +108,7 @@ public class FormDangNhap extends JFrame {
         lblHint.setToolTipText("Try it!");
         getContentPane().add(lblHint);
         
-        JLabel lblVersion = new JLabel("v0.8.0 (Beta)");
+        JLabel lblVersion = new JLabel("v0.8.0 (Beta)");									// Cập nhật Version tại đây
         lblVersion.setFont(new Font("Segoe UI", Font.ITALIC, 10));
         lblVersion.setForeground(Color.GRAY);
         lblVersion.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -161,7 +161,7 @@ public class FormDangNhap extends JFrame {
             	String role = rs.getString("Role");
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
                 this.dispose();
-                new FormNhanVien(u, role).setVisible(true);
+                new QuanLyNhanVien(u, role).setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
@@ -194,11 +194,11 @@ public class FormDangNhap extends JFrame {
 
     private void moGiaoDienChinh() {														// Hàm 'Mở giao diện phần mềm'
         this.dispose();
-        new FormNhanVien("SuperAdmin", "Admin").setVisible(true);
+        new QuanLyNhanVien("SuperAdmin", "Admin").setVisible(true);
     }
 
     public static void main(String[] args) {												// Hàm main
-        FormDangNhap loginScreen = new FormDangNhap();
+        DangNhapUI loginScreen = new DangNhapUI();
         loginScreen.setVisible(true);
         loginScreen.setLocationRelativeTo(null);
     }

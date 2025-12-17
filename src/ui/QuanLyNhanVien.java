@@ -2,7 +2,10 @@ package ui;
 																					//Controller - Cả nhóm
 import java.awt.Color;
 import java.awt.Font;
-// Controller - Cả nhóm
+import java.awt.GridLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -12,6 +15,8 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -19,12 +24,9 @@ import javax.swing.table.DefaultTableModel;
 
 import dao.NhanVienDAO;
 import entity.NhanVien;
+import logic.XuLyTangLuong;
 
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import javax.swing.JPasswordField;
-
-public class FormNhanVien extends NhanVienUI {                          			
+public class QuanLyNhanVien extends NhanVienUI {                          			
 
     private String lastMa = "";
     private String lastTen = "";
@@ -36,7 +38,7 @@ public class FormNhanVien extends NhanVienUI {
     private NhanVienDAO dao = new NhanVienDAO();
     private static final long serialVersionUID = 2L;                
 
-    public FormNhanVien(String username, String role) {								// Hàm khởi tạo
+    public QuanLyNhanVien(String username, String role) {								// Hàm khởi tạo
         super();
         this.taiKhoanHienTai = username;
         this.quyenHienTai = role;
@@ -277,16 +279,16 @@ public class FormNhanVien extends NhanVienUI {
             }
         });
 
-        btnTangLuong.addActionListener(e -> tangLuong());               			// Xử lí sự kiện: 'Tăng lương' - Quốc
+        btnTangLuong.addActionListener(e -> xuLyTangLuong());               			// Xử lí sự kiện: 'Tăng lương' - Quốc
 
         btnMoTinhLuong.addActionListener(e -> {                         			// Xử lí sự kiện: 'Mở Bảng Lương' - Đồng
-            FormTinhLuong cuaSoTinhLuong = new FormTinhLuong();
+            TinhLuongUI cuaSoTinhLuong = new TinhLuongUI();
             cuaSoTinhLuong.setVisible(true);
             cuaSoTinhLuong.setLocationRelativeTo(null);
         });
 
         btnThongKe.addActionListener(e -> {                             			// Xử lí sự kiện: 'Thống Kê' - Hướng
-            FormThongKe fr = new FormThongKe();
+            ThongKeUI fr = new ThongKeUI();
             fr.setVisible(true);
         });
 
@@ -326,29 +328,77 @@ public class FormNhanVien extends NhanVienUI {
         btnSortLuong.setVisible(hien);
     }
                                                                         
-    private void tangLuong() {                                          			// Hàm 'Click - Tăng lương' - Dùng trong Xử lí sự kiện: 'Tăng lương' - Quốc
+    private void xuLyTangLuong() {													// Hàm 'Click - Tăng lương' - Dùng trong Xử lí sự kiện: 'Tăng lương' - Quốc
         int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên trong bảng!");
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần tăng lương!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String maNV = model.getValueAt(row, 0).toString();
-        String input = JOptionPane.showInputDialog(null, "Nhập % tăng lương:", "Tăng lương", JOptionPane.QUESTION_MESSAGE);
 
-        if (input == null || input.trim().isEmpty()) return;
+        String maNV = table.getValueAt(row, 0).toString();
+        String hoTen = table.getValueAt(row, 1).toString();
+        String luongCuStr = table.getValueAt(row, 3).toString().replace(",", "").replace(" VNĐ", "").trim();
+        double luongCu = Double.parseDouble(luongCuStr);
 
-        try {
-            double percent = Double.parseDouble(input);
-            int kq = dao.tangLuong(maNV, percent);
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Chọn hình thức tăng lương cho: " + hoTen));
 
-            if (kq > 0) {
-                JOptionPane.showMessageDialog(null, "Tăng lương thành công!");
-                loadData("NV.MaNV ASC");
-            } else {
-                JOptionPane.showMessageDialog(null, "Không tìm thấy nhân viên!");
+        String[] options = {"KPI Loại A (Xuất sắc)", "KPI Loại B (Giỏi)", "KPI Loại C (Khá)", "Nhập tay %"};
+        JComboBox<String> cboOption = new JComboBox<>(options);
+        panel.add(cboOption);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Xét Duyệt Tăng Lương", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            double luongMoi = 0;
+            double phanTram = 0;
+
+            int selectedIndex = cboOption.getSelectedIndex();
+
+            try {
+                if (selectedIndex == 0) {
+                    luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "A");
+                } else if (selectedIndex == 1) {
+                    luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "B");
+                } else if (selectedIndex == 2) {
+                    luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "C");
+                } else {
+                    String input = JOptionPane.showInputDialog(this, "Nhập % muốn tăng:", "5");
+
+                    if (input == null || input.trim().isEmpty()) {
+                        return;
+                    }
+
+                    try {
+                        phanTram = Double.parseDouble(input);
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(this, "Vui lòng nhập số hợp lệ!");
+                        return;
+                    }
+
+                    luongMoi = luongCu * (1 + phanTram / 100);
+                }
+
+                if (selectedIndex <= 2) {
+                    phanTram = ((luongMoi - luongCu) / luongCu) * 100;
+                }
+
+                String msg = String.format("Lương cũ: %,.0f VNĐ\nLương mới: %,.0f VNĐ\n(Tăng: %.1f%%)\n\nXác nhận cập nhật?",
+                        luongCu, luongMoi, phanTram);
+
+                int confirm = JOptionPane.showConfirmDialog(this, msg, "Xác Nhận", JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    NhanVienDAO dao = new NhanVienDAO();
+                    dao.tangLuong(maNV, phanTram);
+
+                    JOptionPane.showMessageDialog(this, "Đã tăng lương thành công!");
+                    loadData("NV.MaNV ASC");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Lỗi: " + e.getMessage());
         }
     }
     

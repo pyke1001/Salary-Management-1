@@ -1,5 +1,5 @@
 package ui;
-																		// View - Việt
+																		// Giao diện Admin - Việt
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.JButton;
