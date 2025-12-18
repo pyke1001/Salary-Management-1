@@ -93,7 +93,7 @@ public class DangNhapUI extends JFrame {
         btnQuenMK.setFont(new Font("Segoe UI", Font.BOLD, 11));
         getContentPane().add(btnQuenMK);
 
-        btnQuenMK.addActionListener(e -> {
+        btnQuenMK.addActionListener(_ -> {
             String thongBao = "Quên mật khẩu?\n" +
                               "Vui lòng liên hệ Admin qua số XXXX-XXX-772 hoặc user 'pyke1001' tại Discord!\n" +
                               "(Warning: Đừng thắc mắc về tên Discord của Admin)";
@@ -118,9 +118,9 @@ public class DangNhapUI extends JFrame {
     }
 
     private void initEvents() {																// Hàm 'Xử lí sự kiện'
-        btnLogin.addActionListener(e -> xuLyDangNhap());
-        btnThoat.addActionListener(e -> System.exit(0));
-        txtPass.addActionListener(e -> xuLyDangNhap());
+        btnLogin.addActionListener(_ -> xuLyDangNhap());
+        btnThoat.addActionListener(_ -> System.exit(0));
+        txtPass.addActionListener(_ -> xuLyDangNhap());
 
         KeyListener konamiListener = new KeyAdapter() {
             @Override

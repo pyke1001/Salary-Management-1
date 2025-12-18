@@ -40,7 +40,7 @@ public class ThongKeUI extends JFrame {
 
         JButton btnClose = new JButton("Đóng Báo Cáo");
         btnClose.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnClose.addActionListener(e -> dispose());
+        btnClose.addActionListener(_ -> dispose());
         JPanel pnlBot = new JPanel();
         pnlBot.add(btnClose);
         add(pnlBot, BorderLayout.SOUTH);

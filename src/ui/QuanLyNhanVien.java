@@ -3,6 +3,8 @@ package ui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -32,8 +34,6 @@ import javax.swing.table.DefaultTableModel;
 import dao.NhanVienDAO;
 import entity.NhanVien;
 import logic.XuLyTangLuong;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class QuanLyNhanVien extends NhanVienUI {
 
@@ -69,11 +69,11 @@ public class QuanLyNhanVien extends NhanVienUI {
 
     private void phanQuyen() {															// Hàm 'Phân quyền' - Việt
         if (quyenHienTai.equalsIgnoreCase("Admin")) {
-            btnQuanLyTK.addActionListener(e -> hienThiDanhSachTaiKhoanAdmin());
-            btnThuongNong.addActionListener(e -> xuLyThuongNong());
-            btnChotThang.addActionListener(e -> xuLyChotThang());
-            btnXuatExcel.addActionListener(e -> xuLyXuatExcel()); 
-            btnPhat.addActionListener(e -> {
+            btnQuanLyTK.addActionListener(_ -> hienThiDanhSachTaiKhoanAdmin());
+            btnThuongNong.addActionListener(_ -> xuLyThuongNong());
+            btnChotThang.addActionListener(_ -> xuLyChotThang());
+            btnXuatExcel.addActionListener(_ -> xuLyXuatExcel()); 
+            btnPhat.addActionListener(_ -> {
                 int row = table.getSelectedRow();
                 if (row < 0) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần phạt!", "Chưa chọn", javax.swing.JOptionPane.WARNING_MESSAGE);
@@ -227,7 +227,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             btnDanhBa.setBounds(250, btnY, 140, 40); 
             btnDanhBa.setFont(new Font("Segoe UI", Font.BOLD, 14)); btnDanhBa.setBackground(Color.WHITE);
             getContentPane().add(btnDanhBa); btnDanhBa.setVisible(true);
-            btnDanhBa.addActionListener(e -> hienThiCuaSoDanhBa());
+            btnDanhBa.addActionListener(_ -> hienThiCuaSoDanhBa());
 
             btnMoTinhLuong.setText("💰 Phiếu Lương");
             btnMoTinhLuong.setBounds(405, btnY, 150, 40); 
@@ -238,7 +238,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             btnDoiMK.setBounds(570, btnY, 150, 40); 
             btnDoiMK.setFont(new Font("Segoe UI", Font.BOLD, 14)); btnDoiMK.setBackground(Color.WHITE);
             getContentPane().add(btnDoiMK); btnDoiMK.setVisible(true);
-            btnDoiMK.addActionListener(e -> hienThiFormDoiMatKhau());
+            btnDoiMK.addActionListener(_ -> hienThiFormDoiMatKhau());
         }
     }
 
@@ -246,11 +246,11 @@ public class QuanLyNhanVien extends NhanVienUI {
     
     private void initEvents() { 														// Hàm 'Xử lí sự kiện' - Cả nhóm
 
-        btnSortMa.addActionListener(e -> reloadTable("NV.MaNV ASC")); 					// Xử lí sự kiện: 'Sắp xếp Mã NV'
-        btnSortTen.addActionListener(e -> reloadTable("NV.HoTen ASC")); 				// Xử lí sự kiện: 'Sắp xếp Họ Tên' //Tóm gọn là Xử lí sự kiện: 'Sắp xếp' - Việt
-        btnSortLuong.addActionListener(e -> reloadTable("NV.LuongCoBan DESC")); 		// Xử lí sự kiện: 'Sắp xếp Lương'
+        btnSortMa.addActionListener(_ -> reloadTable("NV.MaNV ASC")); 					// Xử lí sự kiện: 'Sắp xếp Mã NV'
+        btnSortTen.addActionListener(_ -> reloadTable("NV.HoTen ASC")); 				// Xử lí sự kiện: 'Sắp xếp Họ Tên' //Tóm gọn là Xử lí sự kiện: 'Sắp xếp' - Việt
+        btnSortLuong.addActionListener(_ -> reloadTable("NV.LuongCoBan DESC")); 		// Xử lí sự kiện: 'Sắp xếp Lương'
 
-        btnTimKiem.addActionListener(e -> xuLyTimKiemDaNang()); 						// Xử lí sự kiện: 'Tìm kiếm' - Việt
+        btnTimKiem.addActionListener(_ -> xuLyTimKiemDaNang()); 						// Xử lí sự kiện: 'Tìm kiếm' - Việt
 
         table.addMouseListener(new MouseAdapter() { 									// Xử lí sự kiện: 'Click - Chỉnh sửa' - Việt
             @Override
@@ -271,7 +271,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             }
         });
 
-        btnThem.addActionListener(e -> { 												// Xử lí sự kiện: 'Thêm' - Việt
+        btnThem.addActionListener(_ -> { 												// Xử lí sự kiện: 'Thêm' - Việt
             if (txtMaNV.getText().equals("") || txtHoTen.getText().equals("")) {
                 JOptionPane.showMessageDialog(null, "Vui lòng nhập đầy đủ thông tin!");
                 return;
@@ -297,7 +297,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             }
         });
 
-        btnSua.addActionListener(e -> {
+        btnSua.addActionListener(_ -> {
             int row = table.getSelectedRow();
             if (row < 0) {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -342,7 +342,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             }
         });
 
-        btnXoa.addActionListener(e -> { 												// Xử lí sự kiện: 'Xóa' - Việt
+        btnXoa.addActionListener(_ -> { 												// Xử lí sự kiện: 'Xóa' - Việt
             if (txtMaNV.getText().equals("")) {
                 JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên cần xóa!");
                 return;
@@ -359,7 +359,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             }
         });
 
-        btnLamMoi.addActionListener(e -> { 												// Xử lí sự kiện: 'Làm mới' - Tùng
+        btnLamMoi.addActionListener(_ -> { 												// Xử lí sự kiện: 'Làm mới' - Tùng
             resetForm();
             lastMa = "";
             lastTen = "";
@@ -368,13 +368,13 @@ public class QuanLyNhanVien extends NhanVienUI {
             reloadTable("NV.MaNV ASC");
         });
 
-        btnTangLuong.addActionListener(e -> xuLyTangLuong()); 							// Xử lí sự kiện: 'Tăng lương' - Quốc
+        btnTangLuong.addActionListener(_ -> xuLyTangLuong()); 							// Xử lí sự kiện: 'Tăng lương' - Quốc
 
-        btnGiamLuong.addActionListener(e -> xuLyGiamLuong()); 							// Xử lí sự kiện: 'Giảm lương' - Việt
+        btnGiamLuong.addActionListener(_ -> xuLyGiamLuong()); 							// Xử lí sự kiện: 'Giảm lương' - Việt
 
-        btnBaoLoi.addActionListener(e -> hienThiFormBaoLoi()); 							// Xử lí sự kiện: 'Báo lỗi' - Việt
+        btnBaoLoi.addActionListener(_ -> hienThiFormBaoLoi()); 							// Xử lí sự kiện: 'Báo lỗi' - Việt
         
-        btnMoTinhLuong.addActionListener(e -> {											// Xử lí sự kiện: 'Phiếu lương' - Đồng
+        btnMoTinhLuong.addActionListener(_ -> {											// Xử lí sự kiện: 'Phiếu lương' - Đồng
             String hoTen = "";
             long luongCoBan = 0;
             
@@ -403,14 +403,14 @@ public class QuanLyNhanVien extends NhanVienUI {
             cuaSoTinhLuong.setVisible(true);
         });
 
-        btnThongKe.addActionListener(e -> { 											// Xử lí sự kiện: 'Thống Kê' - Hướng
+        btnThongKe.addActionListener(_ -> { 											// Xử lí sự kiện: 'Thống Kê' - Hướng
         	ui.ThongKeUI thongKeForm = new ui.ThongKeUI(model);
             thongKeForm.setVisible(true);
         });
 
         setHienThi(false);
 
-        btnLoad.addActionListener(e -> { 												// Xử lí sự kiện: 'Tải danh sách' - Việt
+        btnLoad.addActionListener(_ -> { 												// Xử lí sự kiện: 'Tải danh sách' - Việt
 
             setHienThi(true);
             loadData("NV.MaNV ASC");
@@ -569,7 +569,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         }
     }
 
-	    private void loadData(String orderBy) { 					// Hàm 'Lau bảng (Danh sách)' - Việt
+	private void loadData(String orderBy) { 						// Hàm 'Lau bảng (Danh sách)' - Việt
 	        String[] columns = { 				// Dùng trong Xử lí sự kiện: 'Click- Cập nhật Phạt', 'Thêm', 'Xóa', 'Sửa'
 	            "Mã NV",
 	            "Họ Tên",
@@ -718,7 +718,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             }
         };
 
-        cboPhong.addActionListener(e -> napDuLieu.run());
+        cboPhong.addActionListener(_ -> napDuLieu.run());
 
         txtTimDanhBa.addKeyListener(new KeyAdapter() {
             @Override
@@ -763,7 +763,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         btnLuu.setBackground(Color.GREEN);
         dialog.getContentPane().add(btnLuu);
 
-        btnLuu.addActionListener(e -> { // Xử lí sự kiện: 'Lưu' 						
+        btnLuu.addActionListener(_ -> { 							// Xử lí sự kiện: 'Lưu' 						
             String cu = new String(txtPassCu.getPassword());
             String moi = new String(txtPassMoi.getPassword());
             String xacNhan = new String(txtPassXacNhan.getPassword());
@@ -889,6 +889,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         boLocDuLieu.run();
         dialog.setVisible(true);
     }
+    
     private void xuLyGiamLuong() {									// Hàm 'Giảm lương' - Dùng trong Xử lí sự kiện: 'Giảm lương' - Việt
         int row = table.getSelectedRow();
         if (row < 0) {
@@ -967,12 +968,10 @@ public class QuanLyNhanVien extends NhanVienUI {
         sp.setBounds(20, 90, 340, 100);
         dialog.getContentPane().add(sp);
 
-        // --- KHAI BÁO NÚT GUI Ở ĐÂY ---
         JButton btnGui = new JButton("Gửi báo cáo");
         btnGui.setBounds(130, 210, 120, 30);
 
-        // --- XỬ LÝ SỰ KIỆN NGAY TẠI ĐÂY (Để Java hiểu btnGui là gì) ---
-        btnGui.addActionListener(e -> {
+        btnGui.addActionListener(_ -> {
             String tieuDe = txtTieuDe.getText().trim();
             String noiDung = txtNoiDung.getText().trim();
 
@@ -981,11 +980,9 @@ public class QuanLyNhanVien extends NhanVienUI {
                 return;
             }
 
-            // 1. Lưu vào SQL
             NhanVienDAO dao = new NhanVienDAO();
             dao.guiBaoLoi(tieuDe, noiDung);
 
-            // 2. Gửi sang Discord (Chạy luồng riêng)
             new Thread(() -> {
                 logic.DiscordWebhook.guiThongBao(tieuDe, noiDung);
             }).start();
@@ -994,7 +991,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             dialog.dispose();
         });
 
-        dialog.getContentPane().add(btnGui); // Thêm nút vào dialog
+        dialog.getContentPane().add(btnGui); 
         dialog.setVisible(true);
     }
     
