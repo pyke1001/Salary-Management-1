@@ -21,6 +21,7 @@ public class ConnectDB {
 
     public static Connection getConnection() {
         Properties props = new Properties();
+        
         try {
             File f = new File(getRealPath(CONFIG_FILE));
             if (f.exists()) {
@@ -28,7 +29,7 @@ public class ConnectDB {
             } else {
                 setDefaults(props);
             }
-        } catch (Exception _) {
+        } catch (Exception ex) {
             setDefaults(props);
         }
 
@@ -36,7 +37,7 @@ public class ConnectDB {
             try {
                 Connection conn = tryConnect(props);
                 if (conn != null) return conn;
-            } catch (Exception _) {}
+            } catch (Exception ex) {}
 
             if (showConfigDialog(props)) System.exit(0);
         }
@@ -52,6 +53,7 @@ public class ConnectDB {
     }
 
     private static Connection tryConnect(Properties props) {
+
         try {
             String type = props.getProperty("dbType", "SQLite");
             Connection c = null;
@@ -60,14 +62,11 @@ public class ConnectDB {
                 Class.forName("org.sqlite.JDBC");
                 String dbPath = getRealPath("konami_data.db");
                 
-                // Kết nối SQLite
+                javax.swing.JOptionPane.showMessageDialog(null, "App đang tìm DB tại:\n" + dbPath);
+                
                 c = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
                 
-                // Cố gắng tạo bảng và dữ liệu mẫu. 
-                // Nếu thất bại (do quyền hạn), ta VẪN GIỮ kết nối c để App mở lên được.
                 taoBangSQLiteNeuChuaCo(c);
-                
-                // ĐÃ XÓA ĐOẠN "SELECT" GÂY LỖI TẠI ĐÂY
                 
             } else {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -86,6 +85,7 @@ public class ConnectDB {
     private static void taoBangSQLiteNeuChuaCo(Connection c) {
         try (Statement stmt = c.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS PhongBan (MaPB TEXT PRIMARY KEY, TenPB TEXT)");
+            
             stmt.execute("CREATE TABLE IF NOT EXISTS NhanVien (" +
                          "MaNV TEXT PRIMARY KEY, HoTen TEXT, MaPB TEXT, " +
                          "LuongCoBan INTEGER, HeSoLuong REAL, NgayVaoLam TEXT, " + 
@@ -93,25 +93,27 @@ public class ConnectDB {
                          "TienThuong INTEGER DEFAULT 0, " +
                          "FOREIGN KEY(MaPB) REFERENCES PhongBan(MaPB))");
 
+            stmt.execute("CREATE TABLE IF NOT EXISTS TaiKhoan (" +
+                         "Username TEXT PRIMARY KEY, " +
+                         "Password TEXT, " +
+                         "Role TEXT, " +
+                         "FOREIGN KEY(Username) REFERENCES NhanVien(MaNV))");
+
             java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM PhongBan");
             if (rs.next() && rs.getInt(1) == 0) {
-                stmt.execute("INSERT INTO PhongBan VALUES ('PB01', 'Phòng Kỹ Thuật')");
-                stmt.execute("INSERT INTO PhongBan VALUES ('PB02', 'Phòng Nhân Sự')");
-                stmt.execute("INSERT INTO PhongBan VALUES ('PB03', 'Phòng Kinh Doanh')");
-                stmt.execute("INSERT INTO NhanVien (MaNV, HoTen, MaPB, LuongCoBan, HeSoLuong, NgayVaoLam) VALUES ('NV01', 'Admin', 'PB01', 10000000, 1.0, '2025-01-01')");
+                stmt.execute("INSERT INTO PhongBan VALUES ('PB01', 'Phòng Admin')");
+                stmt.execute("INSERT INTO NhanVien (MaNV, HoTen, MaPB, LuongCoBan, HeSoLuong, NgayVaoLam) " +
+                             "VALUES ('NV01', 'Super Admin', 'PB01', 99999999, 1.0, '2025-01-01')");
+                stmt.execute("INSERT INTO TaiKhoan (Username, Password, Role) VALUES ('NV01', '123456', 'Admin')");
             }
-        } catch (Exception _) {
-            // Lỗi tạo bảng (thường do Read-only trên Mac). 
-            // Ta lờ đi để App vẫn mở lên được, người dùng sẽ thấy lỗi khi đăng nhập sau.
-        }
+        } catch (Exception ex) {}
     }
 
     private static String getRealPath(String fileName) {
         try {
-            // Logic lấy đường dẫn chuẩn nhất cho cả Mac và Windows (xử lý khoảng trắng %20)
             URI uri = ConnectDB.class.getProtectionDomain().getCodeSource().getLocation().toURI();
             return new File(new File(uri).getParent(), fileName).getCanonicalPath();
-        } catch (Exception _) {
+        } catch (Exception ex) {
             return fileName;
         }
     }
@@ -126,13 +128,16 @@ public class ConnectDB {
         JTextField txtDbName = new JTextField(props.getProperty("dbName"));
         JTextField txtUser = new JTextField(props.getProperty("user"));
         JPasswordField txtPass = new JPasswordField(props.getProperty("pass"));
-        panel.add(new JLabel("Loại:")); panel.add(cbType);
-        panel.add(new JLabel("Host:")); panel.add(txtHost);
+        
+        panel.add(new JLabel("Loại CSDL:")); panel.add(cbType);
+        panel.add(new JLabel("IP Host:")); panel.add(txtHost);
         panel.add(new JLabel("Port:")); panel.add(txtPort);
-        panel.add(new JLabel("DB Name:")); panel.add(txtDbName);
+        panel.add(new JLabel("Tên DB:")); panel.add(txtDbName);
         panel.add(new JLabel("User:")); panel.add(txtUser);
         panel.add(new JLabel("Pass:")); panel.add(txtPass);
-        int result = JOptionPane.showConfirmDialog(null, panel, "Cấu hình CSDL", JOptionPane.OK_CANCEL_OPTION);
+        
+        int result = JOptionPane.showConfirmDialog(null, panel, "Cấu hình Kết Nối", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        
         if (result == JOptionPane.OK_OPTION) {
             props.setProperty("dbType", cbType.getSelectedItem().toString());
             props.setProperty("host", txtHost.getText());
@@ -149,6 +154,6 @@ public class ConnectDB {
     private static void saveConfig(Properties props) {
         try (FileOutputStream out = new FileOutputStream(getRealPath(CONFIG_FILE))) {
             props.store(out, null);
-        } catch (Exception _) {}
+        } catch (Exception ex) {}
     }
 }

@@ -1,10 +1,11 @@
 package ui;
-																						// Controller - Cả nhóm
+
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -14,7 +15,6 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,6 +26,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -43,67 +44,82 @@ public class QuanLyNhanVien extends NhanVienUI {
     private String lastLuong = "";
     private String taiKhoanHienTai;
     private String quyenHienTai;
-
+    private String lastHeSo = "";
+    private java.util.Set<String> secretsFound = new java.util.HashSet<>();
+    private boolean isNeonUnlocked = false;
+    private boolean isNeonActive = false;
+    
+    private JLabel lblContraHint;
+    private JLabel lblSnake;
+    private JLabel lblNeon;
+    
     private NhanVienDAO dao = new NhanVienDAO();
     private static final long serialVersionUID = 2L;
 
-    public QuanLyNhanVien(String username, String role) { 								// Hàm khởi tạo
+    public QuanLyNhanVien(String username, String role) {
+    	
         super();
-        btnPhat.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        	}
-        });
-        btnThuongNong.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        	}
-        });
-        btnChotThang.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        	}
-        });
         this.taiKhoanHienTai = username;
         this.quyenHienTai = role;
+        
+        napDuLieuPhongBan();
+
+        cboLuongCoBan.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {
+            "Tất cả mức lương", "Dưới 5 triệu", "5 triệu - 10 triệu", 
+            "10 triệu - 20 triệu", "Trên 20 triệu"
+        }));
+
+        cboHeSo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {
+            "Tất cả hệ số", "Dưới 2.0", "2.0 - 3.0", "Trên 3.0"
+        }));
         initEvents();
         phanQuyen();
+        hienThiGoiYCheat();
+    }
+    
+    private void napDuLieuPhongBan() {
+        cboPhongBan.removeAllItems();
+        cboPhongBan.addItem("Tất cả Phòng Ban"); 
+        List<String> pbList = dao.layDanhSachPhongBan();
+        for (String pb : pbList) {
+            cboPhongBan.addItem(pb);
+        }
     }
 
-    private void phanQuyen() {															// Hàm 'Phân quyền' - Việt
+    private void phanQuyen() {
         if (quyenHienTai.equalsIgnoreCase("Admin")) {
-            btnQuanLyTK.addActionListener(_ -> hienThiDanhSachTaiKhoanAdmin());
-            btnThuongNong.addActionListener(_ -> xuLyThuongNong());
-            btnChotThang.addActionListener(_ -> xuLyChotThang());
-            btnXuatExcel.addActionListener(_ -> xuLyXuatExcel()); 
-            btnPhat.addActionListener(_ -> {
+            btnQuanLyTK.addActionListener(e -> hienThiDanhSachTaiKhoanAdmin());
+            btnThuongNong.addActionListener(e -> xuLyThuongNong());
+            btnChotThang.addActionListener(e -> xuLyChotThang());
+            btnXuatExcel.addActionListener(e -> xuLyXuatExcel()); 
+            
+            btnPhat.addActionListener(e -> {
                 int row = table.getSelectedRow();
                 if (row < 0) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần phạt!", "Chưa chọn", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần phạt!", "Chưa chọn", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
                 
                 String maNV = table.getValueAt(row, 0).toString();
                 String hoTen = table.getValueAt(row, 1).toString();
                 
-                String input = javax.swing.JOptionPane.showInputDialog(this, 
+                String input = JOptionPane.showInputDialog(this, 
                     "Nhập số ngày đi trễ của " + hoTen + ":\n(Ví dụ: 1, 2, 3...)", 
-                    "Xử Lý Vi Phạm", 
-                    javax.swing.JOptionPane.QUESTION_MESSAGE);
+                    "Xử Lý Vi Phạm", JOptionPane.QUESTION_MESSAGE);
                     
                 if (input != null && !input.trim().isEmpty()) {
                     try {
                         int soNgay = Integer.parseInt(input.trim());
                         if (soNgay < 0) {
-                            javax.swing.JOptionPane.showMessageDialog(this, "Số ngày không được âm!");
+                            JOptionPane.showMessageDialog(this, "Số ngày không được âm!");
                             return;
                         }
-                        
-                        // Gọi hàm cập nhật trong DAO (Cập nhật cột SoNgayDiTre và TienPhat)
-                        // Giả sử mỗi ngày trễ phạt 100k (Hoặc logic cậu đã có)
                         dao.capNhatPhat(maNV, soNgay); 
-                        
-                        javax.swing.JOptionPane.showMessageDialog(this, "✅ Đã ghi nhận phạt cho: " + hoTen);
-                        loadData("NV.MaNV ASC"); // Load lại bảng
+                        dao.ghiLichSu(maNV, "Phạt đi trễ", "Số ngày trễ: " + soNgay, taiKhoanHienTai);
+                        JOptionPane.showMessageDialog(this, "✅ Đã ghi nhận phạt cho: " + hoTen);
+                        loadData("NV.MaNV ASC");
                     } catch (Exception ex) {
-                        javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng nhập số nguyên hợp lệ!");
+                        JOptionPane.showMessageDialog(this, "Vui lòng nhập số nguyên hợp lệ!");
                     }
                 }
             });
@@ -111,225 +127,520 @@ public class QuanLyNhanVien extends NhanVienUI {
         }
 
         if (quyenHienTai.equalsIgnoreCase("NhanVien")) {
-            setTitle("Hồ Sơ Cá Nhân - " + taiKhoanHienTai);
-
-            table.getParent().getParent().setVisible(false);
-            btnQuanLyTK.setVisible(false);
-            btnThem.setVisible(false);
-            btnSua.setVisible(false);
-            btnXoa.setVisible(false);
-            btnLamMoi.setVisible(false);
-            
-            btnPhat.setVisible(false);
-            btnThuongNong.setVisible(false);
-            btnChotThang.setVisible(false);
-            btnXuatExcel.setVisible(false);
-            
-            btnTangLuong.setVisible(false);
-            btnTimKiem.setVisible(false);
-            btnLoad.setVisible(false);
-            lblSort.setVisible(false);
-            btnSortMa.setVisible(false);
-            btnSortTen.setVisible(false);
-            btnSortLuong.setVisible(false);
-            btnThongKe.setVisible(false);
-
-            JLabel lblAvatar = new JLabel();
-            lblAvatar.setBounds(50, 50, 160, 160); 
-            lblAvatar.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(200, 200, 200), 5)); 
-            lblAvatar.setOpaque(true); 
-            lblAvatar.setBackground(Color.WHITE); 
-            lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-            
-            try {
-                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/icon/user.png"));
-                java.awt.Image img = icon.getImage().getScaledInstance(150, 150, java.awt.Image.SCALE_SMOOTH);
-                lblAvatar.setIcon(new javax.swing.ImageIcon(img));
-            } catch (Exception ex) {
-                lblAvatar.setText("NO IMAGE");
-            }
-            getContentPane().add(lblAvatar);
-
-            lblMa.setVisible(true); txtMaNV.setVisible(true);
-            lblTen.setVisible(true); txtHoTen.setVisible(true);
-            lblPhong.setVisible(true); txtPhongBan.setVisible(true);
-            lblLuong.setVisible(true); txtLuongCoBan.setVisible(true);
-            lblHS.setVisible(true); txtHeSo.setVisible(true);
-
-            Font fontLabel = new Font("Segoe UI", Font.PLAIN, 14);
-            Font fontText = new Font("Segoe UI", Font.BOLD, 16);
-            Color colorLabel = new Color(100, 100, 100);
-
-            int labelX = 250; int textX = 350; int widthText = 350; int startY = 50; int gap = 55;
-
-            lblMa.setBounds(labelX, startY, 100, 30); lblMa.setFont(fontLabel); lblMa.setForeground(colorLabel);
-            txtMaNV.setBounds(textX, startY, widthText, 30); txtMaNV.setFont(fontText);
-
-            lblTen.setBounds(labelX, startY + gap, 100, 30); lblTen.setFont(fontLabel); lblTen.setForeground(colorLabel);
-            txtHoTen.setBounds(textX, startY + gap, widthText, 40); txtHoTen.setFont(fontText);
-
-            lblPhong.setBounds(labelX, startY + gap * 2, 100, 30); lblPhong.setFont(fontLabel); lblPhong.setForeground(colorLabel);
-            txtPhongBan.setBounds(textX, startY + gap * 2, widthText, 30); txtPhongBan.setFont(fontText);
-
-            lblLuong.setBounds(labelX, startY + gap * 3, 100, 30); lblLuong.setFont(fontLabel); lblLuong.setForeground(colorLabel);
-            txtLuongCoBan.setBounds(textX, startY + gap * 3, widthText, 30); txtLuongCoBan.setFont(fontText); txtLuongCoBan.setForeground(new Color(220, 53, 69));
-
-            lblHS.setBounds(labelX, startY + gap * 4, 100, 30); lblHS.setFont(fontLabel); lblHS.setForeground(colorLabel);
-            txtHeSo.setBounds(textX, startY + gap * 4, widthText, 30); txtHeSo.setFont(fontText);
+            getContentPane().removeAll();
+            getContentPane().setLayout(new BorderLayout());
 
             NhanVien myProfile = dao.getNhanVienTheoMa(taiKhoanHienTai);
-            if (myProfile != null) {
-                txtMaNV.setText(myProfile.getMaNV());
-                txtHoTen.setText(myProfile.getHoTen());
-                txtPhongBan.setText(myProfile.getTenPB() != null ? myProfile.getTenPB() : myProfile.getMaPB());
-                txtLuongCoBan.setText(String.format("%,d", myProfile.getLuongCoBan()) + " VNĐ");
-                txtHeSo.setText(String.valueOf(myProfile.getHeSoLuong()));
-            }
+            String title = (myProfile != null) ? myProfile.getHoTen() : taiKhoanHienTai;
+            setTitle("Hồ Sơ Cá Nhân - " + title);
 
-            JTextField[] cacO = {txtMaNV, txtHoTen, txtPhongBan, txtLuongCoBan, txtHeSo};
-            for (JTextField txt : cacO) {
-                txt.setEditable(false); txt.setOpaque(false); txt.setFocusable(false);
-                txt.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(200, 200, 200)));
-            }
+            JTabbedPane tabPane = new JTabbedPane();
+            tabPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-            JPanel pnlStats = new JPanel(new GridLayout(1, 3, 15, 0));
-            pnlStats.setBounds(250, 330, 450, 70); pnlStats.setOpaque(false);
+            tabPane.addTab("   Thông Tin Chung   ", null, createTabProfile(myProfile));
+            tabPane.addTab("   Thu Nhập & Phúc Lợi   ", null, createTabIncome(myProfile));
+            tabPane.addTab("   Lịch Sử & Vi Phạm   ", null, createTabHistory(myProfile));
+
+            getContentPane().add(tabPane, BorderLayout.CENTER);
             
-            String[] tieuDe = {"NGÀY ĐI TRỄ", "TIỀN THƯỞNG", "THÂM NIÊN"};
-            String[] giaTri = {"0 ngày", "0 VNĐ", "Mới vào"};
-            if(myProfile != null) {
-                giaTri[0] = myProfile.getSoNgayDiTre() + " ngày";
-                giaTri[1] = String.format("%,d", myProfile.getTienThuong());
-                if (myProfile.getNgayVaoLam() != null) {
-                    LocalDate start = new java.util.Date(myProfile.getNgayVaoLam().getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    giaTri[2] = Period.between(start, LocalDate.now()).getYears() + " năm";
-                }
-            }
-            Color[] bgColors = {new Color(255, 235, 238), new Color(232, 245, 233), new Color(227, 242, 253)};
-            Color[] textColors = {new Color(198, 40, 40), new Color(46, 125, 50), new Color(21, 101, 192)};
+            JPanel pnlBot = new JPanel();
+            
+            JButton btnDoiMK = new JButton("Đổi Mật Khẩu");
+            btnDoiMK.addActionListener(e -> hienThiFormDoiMatKhau());
+            pnlBot.add(btnDoiMK);
+            
+            JButton btnLogOut = new JButton("Đăng Xuất");
+            btnLogOut.addActionListener(e -> {
+                dispose();
+                new DangNhapUI().setVisible(true);
+            });
+            pnlBot.add(btnLogOut);
+            
+            getContentPane().add(pnlBot, BorderLayout.SOUTH);
 
-            for (int i = 0; i < 3; i++) {
-                JPanel pnlItem = new JPanel(new java.awt.BorderLayout());
-                pnlItem.setBackground(bgColors[i]);
-                pnlItem.setBorder(javax.swing.BorderFactory.createLineBorder(bgColors[i].darker(), 1));
-                JLabel lblVal = new JLabel(giaTri[i], javax.swing.SwingConstants.CENTER);
-                lblVal.setFont(new Font("Segoe UI", Font.BOLD, 15)); lblVal.setForeground(textColors[i]);
-                JLabel lblTitle = new JLabel(tieuDe[i], javax.swing.SwingConstants.CENTER);
-                lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 10)); lblTitle.setForeground(Color.GRAY);
-                lblTitle.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 5, 0));
-                pnlItem.add(lblVal, java.awt.BorderLayout.CENTER); pnlItem.add(lblTitle, java.awt.BorderLayout.SOUTH);
-                pnlStats.add(pnlItem);
-            }
-            getContentPane().add(pnlStats);
-
-            int btnY = 430;
-            JButton btnDanhBa = new JButton("📖 Danh bạ");
-            btnDanhBa.setBounds(250, btnY, 140, 40); 
-            btnDanhBa.setFont(new Font("Segoe UI", Font.BOLD, 14)); btnDanhBa.setBackground(Color.WHITE);
-            getContentPane().add(btnDanhBa); btnDanhBa.setVisible(true);
-            btnDanhBa.addActionListener(_ -> hienThiCuaSoDanhBa());
-
-            btnMoTinhLuong.setText("💰 Phiếu Lương");
-            btnMoTinhLuong.setBounds(405, btnY, 150, 40); 
-            btnMoTinhLuong.setFont(new Font("Segoe UI", Font.BOLD, 14)); btnMoTinhLuong.setBackground(Color.WHITE);
-            btnMoTinhLuong.setVisible(true);
-
-            JButton btnDoiMK = new JButton("🔒 Đổi Mật Khẩu");
-            btnDoiMK.setBounds(570, btnY, 150, 40); 
-            btnDoiMK.setFont(new Font("Segoe UI", Font.BOLD, 14)); btnDoiMK.setBackground(Color.WHITE);
-            getContentPane().add(btnDoiMK); btnDoiMK.setVisible(true);
-            btnDoiMK.addActionListener(_ -> hienThiFormDoiMatKhau());
+            getContentPane().revalidate();
+            getContentPane().repaint();
         }
     }
-
-
     
-    private void initEvents() { 														// Hàm 'Xử lí sự kiện' - Cả nhóm
+    private JPanel createTabProfile(NhanVien myProfile) {
+        JPanel p = new JPanel(null);
+        p.setBackground(Color.WHITE);
 
-        btnSortMa.addActionListener(_ -> reloadTable("NV.MaNV ASC")); 					// Xử lí sự kiện: 'Sắp xếp Mã NV'
-        btnSortTen.addActionListener(_ -> reloadTable("NV.HoTen ASC")); 				// Xử lí sự kiện: 'Sắp xếp Họ Tên' //Tóm gọn là Xử lí sự kiện: 'Sắp xếp' - Việt
-        btnSortLuong.addActionListener(_ -> reloadTable("NV.LuongCoBan DESC")); 		// Xử lí sự kiện: 'Sắp xếp Lương'
+        JPanel pnlIdentity = new JPanel(null);
+        pnlIdentity.setBounds(30, 30, 300, 400);
+        pnlIdentity.setBackground(new Color(248, 250, 252));
+        pnlIdentity.setBorder(javax.swing.BorderFactory.createTitledBorder(
+            javax.swing.BorderFactory.createLineBorder(new Color(200, 200, 200)), 
+            "ĐỊNH DANH NHÂN SỰ", 
+            javax.swing.border.TitledBorder.CENTER, 
+            javax.swing.border.TitledBorder.TOP, 
+            new Font("Segoe UI", Font.BOLD, 12), 
+            Color.GRAY
+        ));
 
-        btnTimKiem.addActionListener(_ -> xuLyTimKiemDaNang()); 						// Xử lí sự kiện: 'Tìm kiếm' - Việt
+        JLabel lblAvatar = new JLabel();
+        lblAvatar.setBounds(50, 40, 200, 200);
+        lblAvatar.setBorder(javax.swing.BorderFactory.createLineBorder(Color.GRAY, 1));
+        lblAvatar.setOpaque(true);
+        lblAvatar.setBackground(Color.WHITE);
+        lblAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        try {
+            java.net.URL imgURL = getClass().getResource("/icon/user.png");
+            if (imgURL != null) {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imgURL);
+                java.awt.Image img = icon.getImage().getScaledInstance(190, 190, java.awt.Image.SCALE_SMOOTH);
+                lblAvatar.setIcon(new javax.swing.ImageIcon(img));
+            } else {
+                lblAvatar.setText("NO IMG");
+            }
+        } catch (Exception ex) { lblAvatar.setText("ERR"); }
+        pnlIdentity.add(lblAvatar);
 
-        table.addMouseListener(new MouseAdapter() { 									// Xử lí sự kiện: 'Click - Chỉnh sửa' - Việt
+        JLabel lblName = new JLabel(myProfile.getHoTen().toUpperCase(), JLabel.CENTER);
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblName.setForeground(new Color(44, 62, 80));
+        lblName.setBounds(10, 250, 280, 30);
+        pnlIdentity.add(lblName);
+
+        JLabel lblId = new JLabel("ID: " + myProfile.getMaNV(), JLabel.CENTER);
+        lblId.setFont(new Font("Consolas", Font.BOLD, 14));
+        lblId.setForeground(Color.GRAY);
+        lblId.setBounds(10, 280, 280, 20);
+        pnlIdentity.add(lblId);
+
+        JButton btnDoiAnh = new JButton("Đổi Ảnh Đại Diện");
+        btnDoiAnh.setBounds(75, 330, 150, 35);
+        btnDoiAnh.setBackground(new Color(52, 152, 219));
+        btnDoiAnh.setForeground(Color.WHITE);
+        btnDoiAnh.addActionListener(e -> JOptionPane.showMessageDialog(this, "Tính năng đang phát triển!"));
+        pnlIdentity.add(btnDoiAnh);
+
+        p.add(pnlIdentity);
+
+        JPanel pnlInfo = new JPanel(null);
+        pnlInfo.setBounds(350, 30, 600, 400);
+        pnlInfo.setBackground(Color.WHITE);
+        pnlInfo.setBorder(javax.swing.BorderFactory.createTitledBorder("HỒ SƠ CHI TIẾT"));
+
+        int y = 40; int gap = 50;
+        
+        String emailFake = myProfile.getMaNV().toLowerCase() + "@konami.com";
+        
+        String dept = "";
+        if (myProfile.getTenPB() != null && !myProfile.getTenPB().isEmpty()) {
+            dept = myProfile.getTenPB();
+        } else if (myProfile.getMaPB() != null && !myProfile.getMaPB().isEmpty()) {
+            dept = "Mã phòng: " + myProfile.getMaPB();
+        } else {
+            dept = "Chưa phân bổ";
+        }
+        addFancyField(pnlInfo, "Phòng Ban Trực Thuộc:", dept, "/icon/department.png", 30, y);
+        addFancyField(pnlInfo, "Email Công Việc:", emailFake, "/icon/email.png", 30, y + gap);
+        
+        String ngayVao = "N/A";
+        int years = 0;
+        if (myProfile.getNgayVaoLam() != null) {
+            ngayVao = new java.text.SimpleDateFormat("dd/MM/yyyy").format(myProfile.getNgayVaoLam());
+            LocalDate start = new java.util.Date(myProfile.getNgayVaoLam().getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            years = Period.between(start, LocalDate.now()).getYears();
+        }
+        addFancyField(pnlInfo, "Ngày Gia Nhập:", ngayVao, "/icon/calendar.png", 30, y + gap*2);
+
+        JLabel lblLevel = new JLabel("Cấp Độ Thâm Niên (Level " + years + ")");
+        lblLevel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblLevel.setBounds(30, y + gap*3 + 10, 200, 20);
+        pnlInfo.add(lblLevel);
+
+        javax.swing.JProgressBar progressBar = new javax.swing.JProgressBar(0, 10);
+        progressBar.setValue(years);
+        progressBar.setStringPainted(true);
+        progressBar.setString(years + " năm cống hiến");
+        progressBar.setForeground(new Color(230, 126, 34));
+        progressBar.setBounds(30, y + gap*3 + 35, 520, 25);
+        pnlInfo.add(progressBar);
+
+        JButton btnDB = new JButton("Tra Cứu Danh Bạ Đồng Nghiệp");
+        btnDB.setBounds(30, 330, 300, 45);
+        
+        java.net.URL iconURL = getClass().getResource("/icon/search.png");
+        if (iconURL != null) {
+            javax.swing.ImageIcon icon = new javax.swing.ImageIcon(iconURL);
+            java.awt.Image img = icon.getImage().getScaledInstance(24, 24, java.awt.Image.SCALE_SMOOTH);
+            btnDB.setIcon(new javax.swing.ImageIcon(img));
+            btnDB.setIconTextGap(15);
+        }
+        
+        btnDB.addActionListener(e -> hienThiCuaSoDanhBa());
+        pnlInfo.add(btnDB);
+
+        p.add(pnlInfo);
+        return p;
+    }
+
+    private void addFancyField(JPanel p, String title, String value, String iconPath, int x, int y) {
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblTitle.setForeground(Color.GRAY);
+        lblTitle.setBounds(x, y, 150, 20);
+        p.add(lblTitle);
+
+        JTextField txt = new JTextField(value);
+        txt.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        txt.setBounds(x, y + 20, 520, 30);
+        txt.setEditable(false);
+        txt.setFocusable(false);
+        txt.setBackground(new Color(250, 250, 250));
+        txt.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220)), 
+            javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0)
+        ));
+        p.add(txt);
+    }
+
+    private JPanel createTabIncome(entity.NhanVien myProfile) {
+        JPanel p = new JPanel(null);
+        p.setBackground(Color.WHITE);
+
+        long luongCung = (long) (myProfile.getLuongCoBan() * myProfile.getHeSoLuong());
+        long phuCapAn = 730000;
+        long phuCapXang = 300000;
+        long thuongDoanhSo = 500000;
+        long thuongTet = 500000 * 7; 
+        long phat = myProfile.getTienPhat();
+        
+        long tongPhuCap = phuCapAn + phuCapXang;
+        long tongThuong = myProfile.getTienThuong() + thuongDoanhSo + thuongTet;
+        long thucLinh = luongCung + tongPhuCap + tongThuong - phat;
+
+        JPanel pnlCharts = new JPanel(new GridLayout(2, 1, 0, 20));
+        pnlCharts.setBounds(30, 20, 400, 600);
+        pnlCharts.setBackground(Color.WHITE);
+        pnlCharts.setBorder(javax.swing.BorderFactory.createTitledBorder("TRỰC QUAN HÓA THU NHẬP"));
+
+        JPanel pnlBarChart = new JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int w = getWidth();
+                int h = getHeight();
+                
+                int topMargin = 40; 
+                int bottomMargin = 30;
+                int chartH = h - topMargin - bottomMargin;
+                
+                long maxVal = Math.max(thucLinh, Math.max(luongCung, tongThuong));
+                if (maxVal == 0) maxVal = 1;
+
+                int barW = (w - 80) / 3; 
+                if (barW > 60) barW = 60;
+                
+                int startX = (w - (barW * 3 + 40)) / 2;
+                
+                drawBar(g2, luongCung, maxVal, startX, topMargin, chartH, barW, new Color(52, 152, 219), "Lương");
+                drawBar(g2, tongThuong + tongPhuCap, maxVal, startX + barW + 20, topMargin, chartH, barW, new Color(46, 204, 113), "Thưởng/PC");
+                drawBar(g2, thucLinh, maxVal, startX + (barW + 20) * 2, topMargin, chartH, barW, new Color(231, 76, 60), "Thực Lĩnh");
+            }
+
+            private void drawBar(Graphics2D g, long val, long max, int x, int topY, int h, int w, Color c, String lbl) {
+                int barHeight = (int)((double)val / max * h);
+                int y = topY + h - barHeight;
+                
+                g.setColor(c);
+                g.fillRect(x, y, w, barHeight);
+                g.setColor(Color.DARK_GRAY);
+                g.drawRect(x, y, w, barHeight);
+                
+                g.setColor(Color.BLACK);
+                g.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                String txt = val > 1000000 ? String.format("%.1fM", val/1000000.0) : String.format("%.0fk", val/1000.0);
+                g.drawString(txt, x + (w - g.getFontMetrics().stringWidth(txt))/2, y - 5);
+                
+                g.drawString(lbl, x + (w - g.getFontMetrics().stringWidth(lbl))/2, topY + h + 20);
+            }
+        };
+        pnlBarChart.setBackground(Color.WHITE);
+        pnlCharts.add(pnlBarChart);
+
+        JPanel pnlPieChart = new JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                long total = luongCung + tongPhuCap + tongThuong;
+                if (total == 0) return;
+
+                int angleLuong = (int) (360.0 * luongCung / total);
+                int anglePC = (int) (360.0 * tongPhuCap / total);
+                int angleThuong = 360 - angleLuong - anglePC;
+
+                int size = Math.min(getWidth(), getHeight()) - 110;
+                int x = (getWidth() - size) / 2 - 80;
+                int y = (getHeight() - size) / 2;
+                
+                g2.setColor(new Color(52, 152, 219));
+                g2.fillArc(x, y, size, size, 90, angleLuong);
+                
+                g2.setColor(new Color(46, 204, 113));
+                g2.fillArc(x, y, size, size, 90 + angleLuong, anglePC);
+                
+                g2.setColor(new Color(243, 156, 18));
+                g2.fillArc(x, y, size, size, 90 + angleLuong + anglePC, angleThuong);
+
+                int lx = x + size + 20;
+                int ly = y + size/2 - 40;
+                drawLegend(g2, lx, ly, new Color(52, 152, 219), "Lương Cứng (" + (int)(100.0*luongCung/total) + "%)");
+                drawLegend(g2, lx, ly + 25, new Color(46, 204, 113), "Phụ Cấp (" + (int)(100.0*tongPhuCap/total) + "%)");
+                drawLegend(g2, lx, ly + 50, new Color(243, 156, 18), "Thưởng & Khác (" + (int)(100.0*tongThuong/total) + "%)");
+                
+                g2.setColor(Color.GRAY);
+                g2.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+                g2.drawString("Biểu đồ cơ cấu thu nhập", x + size/4, y + size + 20);
+            }
+            
+            private void drawLegend(Graphics2D g, int x, int y, Color c, String text) {
+                g.setColor(c);
+                g.fillRect(x, y, 15, 15);
+                g.setColor(Color.BLACK);
+                g.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+                g.drawString(text, x + 20, y + 12);
+            }
+        };
+        pnlPieChart.setBackground(Color.WHITE);
+        pnlCharts.add(pnlPieChart);
+        
+        p.add(pnlCharts);
+
+        String[] columns = {"Khoản Mục", "Số Tiền (VNĐ)"};
+        Object[][] data = {
+            {"Lương Cứng (HS " + myProfile.getHeSoLuong() + ")", String.format("%,d", luongCung)},
+            {"Phụ Cấp Ăn Trưa", String.format("%,d", phuCapAn)},
+            {"Phụ Cấp Xăng Xe", String.format("%,d", phuCapXang)},
+            {"Thưởng Doanh Số", String.format("%,d", thuongDoanhSo)},
+            {"Thưởng Tết (7 năm)", String.format("%,d", thuongTet)},
+            {"Trừ Phạt Đi Trễ", String.format("%,d", -phat)}, 
+            {"TỔNG THỰC LĨNH", String.format("%,d", thucLinh)}
+        };
+
+        DefaultTableModel model = new DefaultTableModel(data, columns) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Trả về false nghĩa là "Cấm sờ vào hiện vật"
+            }
+        };
+        JTable table = new JTable(model);
+        table.setRowHeight(35);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        
+        table.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (row == table.getRowCount() - 1) { 
+                    c.setFont(new Font("Segoe UI", Font.BOLD, 15));
+                    c.setForeground(Color.BLUE);
+                } else if (value.toString().startsWith("-")) { 
+                    c.setForeground(Color.RED);
+                } else {
+                    c.setForeground(Color.BLACK);
+                }
+                return c;
+            }
+        });
+
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBounds(450, 30, 500, 300); 
+        p.add(scroll);
+
+        JLabel lblNote = new JLabel("<html><i>* Số liệu trên bao gồm các khoản phụ cấp dự kiến chưa trừ BHXH.<br>* Biểu đồ tròn thể hiện tỷ trọng các nguồn thu nhập.</i></html>");
+        lblNote.setBounds(450, 340, 400, 40);
+        lblNote.setForeground(Color.GRAY);
+        p.add(lblNote);
+
+        return p;
+    }
+
+    private JPanel createTabHistory(NhanVien myProfile) {
+        JPanel p = new JPanel(null);
+        p.setBackground(Color.WHITE);
+
+        JLabel lblTitle = new JLabel("NHẬT KÝ HOẠT ĐỘNG & BIẾN ĐỘNG NHÂN SỰ");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTitle.setForeground(new Color(44, 62, 80));
+        lblTitle.setBounds(30, 20, 450, 30);
+        p.add(lblTitle);
+        
+        String[] cols = {"Thời Gian", "Hành Động", "Chi Tiết Thay Đổi", "Người Thực Hiện"};
+        
+        DefaultTableModel modelLS = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        
+        JTable tblLS = new JTable(modelLS);
+        tblLS.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tblLS.setRowHeight(30);
+        tblLS.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        
+        tblLS.getColumnModel().getColumn(0).setPreferredWidth(140); 
+        tblLS.getColumnModel().getColumn(1).setPreferredWidth(120); 
+        tblLS.getColumnModel().getColumn(2).setPreferredWidth(450); 
+        tblLS.getColumnModel().getColumn(3).setPreferredWidth(120); 
+        
+        List<String[]> logs = dao.layLichSuCuaNhanVien(myProfile.getMaNV());
+        
+        if (logs.isEmpty()) {
+            modelLS.addRow(new Object[]{"", "Chưa có dữ liệu", "Nhân viên này chưa có ghi nhận hoạt động nào trên hệ thống.", ""});
+        } else {
+            for (String[] row : logs) {
+                modelLS.addRow(row);
+            }
+        }
+        
+        for (int i = 0; i < tblLS.getRowCount(); i++) {
+            Object val = tblLS.getValueAt(i, 2);
+            if (val != null) {
+                String noiDung = val.toString(); 
+                int soDong = noiDung.split("<br>").length; 
+                if (soDong > 1) {
+                    int chieuCaoCanThiet = soDong * 22 + 10;
+                    tblLS.setRowHeight(i, chieuCaoCanThiet);
+                }
+            }
+        }
+        
+        JScrollPane s = new JScrollPane(tblLS);
+        s.setBounds(30, 60, 900, 300);
+        s.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        p.add(s);
+        
+        JLabel lblNote = new JLabel("<html><i>* Bảng này hiển thị toàn bộ lịch sử tăng/giảm lương, phạt vi phạm và cập nhật thông tin cá nhân.</i></html>");
+        lblNote.setBounds(30, 370, 800, 20);
+        lblNote.setForeground(Color.GRAY);
+        p.add(lblNote);
+
+        return p;
+    }
+    
+    private void initEvents() {
+        btnSortMa.addActionListener(e -> reloadTable("NV.MaNV ASC")); 
+        btnSortTen.addActionListener(e -> reloadTable("NV.HoTen ASC")); 
+        btnSortLuong.addActionListener(e -> reloadTable("NV.LuongCoBan DESC")); 
+
+        btnTimKiem.addActionListener(e -> xuLyTimKiemDaNang()); 
+
+        table.addMouseListener(new MouseAdapter() { 
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
                 if (row >= 0) {
-                    txtMaNV.setText(table.getValueAt(row, 0).toString());
+                    String maNV = table.getValueAt(row, 0).toString().trim();
+                    txtMaNV.setText(maNV);
                     txtHoTen.setText(table.getValueAt(row, 1).toString());
-                    txtPhongBan.setText(table.getValueAt(row, 2).toString());
-
+                    cboPhongBan.setSelectedItem(table.getValueAt(row, 2).toString());
                     String luongStr = table.getValueAt(row, 3).toString().replace(",", "").replace(" VNĐ", "");
-                    txtLuongCoBan.setText(luongStr);
-
-                    // Cột 5 là Hệ số (Sau khi đã thêm cột Thâm niên vào vị trí 4)
-                    txtHeSo.setText(table.getValueAt(row, 5).toString());
+                    cboLuongCoBan.setSelectedItem(luongStr);
+                    cboHeSo.setSelectedItem(table.getValueAt(row, 5).toString());
                     txtMaNV.setEditable(false);
+                    
+                    if (isCheatMode()) { 
+                        if (maNV.equalsIgnoreCase("NV30")) {
+                        	unlockSecret("CONTRA");
+                        }
+                    }
                 }
             }
         });
 
-        btnThem.addActionListener(_ -> { 												// Xử lí sự kiện: 'Thêm' - Việt
+        btnThem.addActionListener(e -> { 
             if (txtMaNV.getText().equals("") || txtHoTen.getText().equals("")) {
                 JOptionPane.showMessageDialog(null, "Vui lòng nhập đầy đủ thông tin!");
                 return;
             }
             try {
-                NhanVien nv = new NhanVien(
-                    txtMaNV.getText(),
-                    txtHoTen.getText(),
-                    txtPhongBan.getText(),
-                    Long.parseLong(txtLuongCoBan.getText()),
-                    Float.parseFloat(txtHeSo.getText())
-                );
+                long luong = layGiaTriTuCbo(cboLuongCoBan);
+                float heSo = layGiaTriFloatTuCbo(cboHeSo);
+                String phong = cboPhongBan.getSelectedItem() != null ? cboPhongBan.getSelectedItem().toString() : "";
+                
+                String maPB = dao.chuyenTenPhongThanhMa(phong);
+                if (maPB == null || maPB.isEmpty()) maPB = phong; 
+
+                NhanVien nv = new NhanVien(txtMaNV.getText(), txtHoTen.getText(), maPB, luong, heSo);
 
                 if (dao.themNhanVien(nv)) {
                     JOptionPane.showMessageDialog(null, "✅ Thêm thành công!");
                     loadData("NV.MaNV ASC");
                     resetForm();
                 } else {
-                    JOptionPane.showMessageDialog(null, "❌ Lỗi: Mã nhân viên trùng hoặc sai định dạng số!");
+                    JOptionPane.showMessageDialog(null, "❌ Lỗi: Mã NV trùng hoặc sai định dạng!");
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(null, "❌ Lỗi nhập liệu!");
+                JOptionPane.showMessageDialog(null, "❌ Lỗi nhập liệu: " + ex.getMessage());
             }
         });
 
-        btnSua.addActionListener(_ -> {
+        btnSua.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần sửa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
+            String maNV = txtMaNV.getText();
+            NhanVien nvCu = dao.getNhanVienTheoMa(maNV);
+            if (nvCu == null) return; 
+
             int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn sửa thông tin nhân viên này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
             if (confirm != JOptionPane.YES_OPTION) return;
 
             try {
-                // Lấy dữ liệu từ giao diện
-                String maNV = txtMaNV.getText();
-                String hoTen = txtHoTen.getText();
-                
-                // --- ĐOẠN XỬ LÝ THÔNG MINH ---
-                String phongNhap = txtPhongBan.getText().trim();
-                // Gọi hàm DAO để đổi tên phòng thành mã phòng
-                String maPB = dao.chuyenTenPhongThanhMa(phongNhap); 
-                // -----------------------------
+                String hoTenMoi = txtHoTen.getText();
+                String phongMoi = cboPhongBan.getSelectedItem().toString(); 
+                String maPBMoi = dao.chuyenTenPhongThanhMa(phongMoi);
+                if (maPBMoi == null || maPBMoi.isEmpty()) maPBMoi = phongMoi;
 
-                // Xử lý lương (bỏ dấu phẩy, bỏ chữ VNĐ)
-                String luongStr = txtLuongCoBan.getText().replace(",", "").replace(" VNĐ", "").trim();
-                long luongCoBan = Long.parseLong(luongStr);
-                
-                float heSo = Float.parseFloat(txtHeSo.getText());
+                long luongMoi = layGiaTriTuCbo(cboLuongCoBan);
+                float heSoMoi = layGiaTriFloatTuCbo(cboHeSo);
 
-                // Tạo đối tượng nhân viên mới
-                NhanVien nv = new NhanVien(maNV, hoTen, maPB, luongCoBan, heSo);
-                // Giữ nguyên các thông tin cũ (Ngày vào làm...) nếu cần thiết
-                // Ở đây giả sử hàm update của cậu chỉ cần các thông tin cơ bản
+                NhanVien nvMoi = new NhanVien(maNV, hoTenMoi, maPBMoi, luongMoi, heSoMoi);
                 
-                if (dao.suaNhanVien(nv)) {
+                if (dao.suaNhanVien(nvMoi)) {
+                    StringBuilder sb = new StringBuilder("<html>");
+                    boolean coThayDoi = false;
+
+                    if (nvCu.getLuongCoBan() != luongMoi) {
+                        sb.append(String.format("- Lương: %,d -> <font color='red'><b>%,d</b></font><br>", nvCu.getLuongCoBan(), luongMoi));
+                        coThayDoi = true;
+                    }
+                    if (Float.compare(nvCu.getHeSoLuong(), heSoMoi) != 0) {
+                        sb.append(String.format("- Hệ số: %s -> <font color='blue'><b>%s</b></font><br>", nvCu.getHeSoLuong(), heSoMoi));
+                        coThayDoi = true;
+                    }
+                    String tenPBCu = nvCu.getTenPB() != null ? nvCu.getTenPB() : nvCu.getMaPB();
+                    if (!tenPBCu.equals(phongMoi)) {
+                        sb.append(String.format("- Phòng: %s -> <b>%s</b><br>", tenPBCu, phongMoi));
+                        coThayDoi = true;
+                    }
+                    if (!nvCu.getHoTen().equals(hoTenMoi)) {
+                        sb.append(String.format("- Tên: %s -> %s<br>", nvCu.getHoTen(), hoTenMoi));
+                        coThayDoi = true;
+                    }
+
+                    sb.append("</html>");
+
+                    if (coThayDoi) {
+                        dao.ghiLichSu(maNV, "Sửa thông tin", sb.toString(), taiKhoanHienTai);
+                    } else {
+                        dao.ghiLichSu(maNV, "Sửa thông tin", "Không có thay đổi nào", taiKhoanHienTai);
+                    }
+                    
                     JOptionPane.showMessageDialog(this, "✅ Sửa thành công!");
                     loadData("NV.MaNV ASC");
                     resetForm();
@@ -337,58 +648,62 @@ public class QuanLyNhanVien extends NhanVienUI {
                     JOptionPane.showMessageDialog(this, "❌ Sửa thất bại! (Kiểm tra lại Mã Phòng Ban)");
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi dữ liệu: " + ex.getMessage());
             }
         });
 
-        btnXoa.addActionListener(_ -> { 												// Xử lí sự kiện: 'Xóa' - Việt
+        btnXoa.addActionListener(e -> {
             if (txtMaNV.getText().equals("")) {
                 JOptionPane.showMessageDialog(null, "Vui lòng chọn nhân viên cần xóa!");
                 return;
             }
-            int hoi = JOptionPane.showConfirmDialog(null, "Bạn có chắc muốn xóa?", "Cảnh báo", JOptionPane.YES_NO_OPTION);
-            if (hoi != JOptionPane.YES_OPTION) return;
+            
+            if (isCheatMode()) {
+                java.awt.Toolkit.getDefaultToolkit().beep(); 
+                int hoi = JOptionPane.showConfirmDialog(null, 
+                    "⚠️ ALERT! Enemy spotted!\nBạn có chắc muốn 'tiêu diệt' dữ liệu này không?", 
+                    "Metal Gear Alert", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE); 
+                
+                if (hoi != JOptionPane.YES_OPTION) return;
+                unlockSecret("SNAKE");
+            } else {
+                int hoi = JOptionPane.showConfirmDialog(null, "Bạn có chắc muốn xóa " + txtHoTen.getText() + "?\n(Cảnh báo: Tài khoản đăng nhập của người này cũng sẽ bị xóa)", "Cảnh báo", JOptionPane.YES_NO_OPTION);
+                if (hoi != JOptionPane.YES_OPTION) return;
+            }
+            try {
+                dao.xoaTaiKhoan(txtMaNV.getText()); 
+            } catch (Exception ex) {
+            }
 
             if (dao.xoaNhanVien(txtMaNV.getText())) {
-                JOptionPane.showMessageDialog(null, "✅ Đã xóa thành công!");
+                JOptionPane.showMessageDialog(null, "✅ Đã chuyển hồ sơ vào lưu trữ!");
                 loadData("NV.MaNV ASC");
                 resetForm();
             } else {
-                JOptionPane.showMessageDialog(null, "❌ Lỗi: Không thể xóa!");
+                JOptionPane.showMessageDialog(null, "❌ Lỗi hệ thống!");
             }
         });
-
-        btnLamMoi.addActionListener(_ -> { 												// Xử lí sự kiện: 'Làm mới' - Tùng
+        btnLamMoi.addActionListener(e -> { 
             resetForm();
-            lastMa = "";
-            lastTen = "";
-            lastPhong = "";
-            lastLuong = "";
+            lastMa = ""; lastTen = ""; lastPhong = ""; lastLuong = "";
             reloadTable("NV.MaNV ASC");
         });
 
-        btnTangLuong.addActionListener(_ -> xuLyTangLuong()); 							// Xử lí sự kiện: 'Tăng lương' - Quốc
-
-        btnGiamLuong.addActionListener(_ -> xuLyGiamLuong()); 							// Xử lí sự kiện: 'Giảm lương' - Việt
-
-        btnBaoLoi.addActionListener(_ -> hienThiFormBaoLoi()); 							// Xử lí sự kiện: 'Báo lỗi' - Việt
+        btnTangLuong.addActionListener(e -> xuLyTangLuong()); 
+        btnGiamLuong.addActionListener(e -> xuLyGiamLuong()); 
+        btnBaoLoi.addActionListener(e -> hienThiFormBaoLoi()); 
         
-        btnMoTinhLuong.addActionListener(_ -> {											// Xử lí sự kiện: 'Phiếu lương' - Đồng
+        btnMoTinhLuong.addActionListener(e -> {
             String hoTen = "";
             long luongCoBan = 0;
             
             if (quyenHienTai.equalsIgnoreCase("NhanVien")) {
-                hoTen = txtHoTen.getText();
-                String luongStr = txtLuongCoBan.getText().replace(",", "").replace(" VNĐ", "").trim();
-                try {
-                    luongCoBan = Long.parseLong(luongStr);
-                } catch (Exception ex) {
-                    luongCoBan = 0;
+                NhanVien myProfile = dao.getNhanVienTheoMa(taiKhoanHienTai);
+                if (myProfile != null) {
+                    hoTen = myProfile.getHoTen();
+                    luongCoBan = myProfile.getLuongCoBan();
                 }
-            } 
-            
-            else {
+            } else {
                 int row = table.getSelectedRow();
                 if (row < 0) {
                     JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần tính lương!", "Chưa chọn", JOptionPane.WARNING_MESSAGE);
@@ -403,66 +718,103 @@ public class QuanLyNhanVien extends NhanVienUI {
             cuaSoTinhLuong.setVisible(true);
         });
 
-        btnThongKe.addActionListener(_ -> { 											// Xử lí sự kiện: 'Thống Kê' - Hướng
-        	ui.ThongKeUI thongKeForm = new ui.ThongKeUI(model);
+        btnThongKe.addActionListener(e -> { 
+            ui.ThongKeUI thongKeForm = new ui.ThongKeUI(model);
             thongKeForm.setVisible(true);
         });
+        
+        btnLichSu.addActionListener(e -> hienThiBangLichSu());
 
         setHienThi(false);
 
-        btnLoad.addActionListener(_ -> { 												// Xử lí sự kiện: 'Tải danh sách' - Việt
-
+        btnLoad.addActionListener(e -> { 
             setHienThi(true);
             loadData("NV.MaNV ASC");
+            if (lblContraHint != null && isCheatMode()) {
+                lblContraHint.setVisible(true);
+                lblSnake.setVisible(true);
+                lblNeon.setVisible(true);
+                }
+        });
+        
+        btnKhoiPhuc.addActionListener(e -> hienThiCuaSoKhoiPhuc());
+        
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowOpened(java.awt.event.WindowEvent e) {
+                requestFocusInWindow();
+            }
         });
 
+     // Dùng KeyboardFocusManager để bắt phím toàn cục (Global Hotkey)
+        java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager()
+            .addKeyEventDispatcher(new java.awt.KeyEventDispatcher() {
+                @Override
+                public boolean dispatchKeyEvent(KeyEvent e) {
+                    if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_V) {
+                        if (isNeonUnlocked) {
+                            if (!isNeonActive) {
+                                kichHoatGiaoDienHoangKim();
+                                isNeonActive = true; // Đánh dấu đã bật
+                            } else {
+                                khoiPhucGiaoDienGoc();
+                                isNeonActive = false; // Đánh dấu đã tắt
+                            }
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            });
+        }
+    	private long layGiaTriTuCbo(JComboBox<String> cbo) throws NumberFormatException {
+        String val = cbo.getSelectedItem() != null ? cbo.getSelectedItem().toString() : "0";
+        val = val.replaceAll("[^0-9]", "");
+        if (val.isEmpty()) return 0;
+        return Long.parseLong(val);
+    }
+    
+    private float layGiaTriFloatTuCbo(JComboBox<String> cbo) throws NumberFormatException {
+        String val = cbo.getSelectedItem() != null ? cbo.getSelectedItem().toString() : "0";
+        String[] parts = val.split(" ");
+        return Float.parseFloat(parts[0]);
     }
 
-    private void resetForm() { 										// Hàm 'Lau bảng (Ô nhập liệu)' - Dùng trong Xử lí sự kiện: 'Thêm', 'Xóa', 'Làm mới' - Tùng
+    private void resetForm() { 
         txtMaNV.setText("");
         txtHoTen.setText("");
-        txtPhongBan.setText("");
-        txtLuongCoBan.setText("");
-        txtHeSo.setText("");
+        cboPhongBan.setSelectedIndex(-1);
+        cboLuongCoBan.setSelectedIndex(-1);
+        cboHeSo.setSelectedIndex(-1);
         txtMaNV.setEditable(true);
     }
 
-    private void setHienThi(boolean hien) { 						// Hàm 'Hiển thị' - Dùng trong Xử lí sự kiện: 'Tải danh sách' - Việt
-        lblMa.setVisible(hien);
-        lblTen.setVisible(hien);
-        lblPhong.setVisible(hien);
-        lblLuong.setVisible(hien);
-        lblHS.setVisible(hien);
-        lblSort.setVisible(hien);
+    private void setHienThi(boolean hien) { 
+        lblMa.setVisible(hien); lblTen.setVisible(hien);
+        lblPhong.setVisible(hien); lblLuong.setVisible(hien);
+        lblHS.setVisible(hien); lblSort.setVisible(hien);
 
-        txtMaNV.setVisible(hien);
-        txtHoTen.setVisible(hien);
-        txtPhongBan.setVisible(hien);
-        txtLuongCoBan.setVisible(hien);
-        txtHeSo.setVisible(hien);
-        															// Vai trò: Công tắc ẩn/hiện tất cả các nút
-        btnThem.setVisible(hien);
-        btnSua.setVisible(hien);
-        btnXoa.setVisible(hien);
-        btnLamMoi.setVisible(hien);
-        btnTangLuong.setVisible(hien);
-        btnMoTinhLuong.setVisible(hien);
-        btnThongKe.setVisible(hien);
-        btnTimKiem.setVisible(hien);
-        btnQuanLyTK.setVisible(hien);
-        btnGiamLuong.setVisible(hien);
-        btnBaoLoi.setVisible(hien);
-        btnChotThang.setVisible(hien);
-        btnXuatExcel.setVisible(hien);
-        btnThuongNong.setVisible(hien);
+        txtMaNV.setVisible(hien); txtHoTen.setVisible(hien);
+        cboPhongBan.setVisible(hien); cboLuongCoBan.setVisible(hien);
+        cboHeSo.setVisible(hien);
+        
+        btnLichSu.setVisible(hien); 
+        btnThem.setVisible(hien); btnSua.setVisible(hien);
+        btnXoa.setVisible(hien); btnLamMoi.setVisible(hien);
+        btnTangLuong.setVisible(hien); btnMoTinhLuong.setVisible(hien);
+        btnThongKe.setVisible(hien); btnTimKiem.setVisible(hien);
+        btnQuanLyTK.setVisible(hien); btnGiamLuong.setVisible(hien);
+        btnBaoLoi.setVisible(hien); btnChotThang.setVisible(hien);
+        btnXuatExcel.setVisible(hien); btnThuongNong.setVisible(hien);
         btnPhat.setVisible(hien);
+   
+        btnKhoiPhuc.setVisible(hien);
 
-        btnSortMa.setVisible(hien);
-        btnSortTen.setVisible(hien);
+        btnSortMa.setVisible(hien); btnSortTen.setVisible(hien);
         btnSortLuong.setVisible(hien);
     }
 
-    private void xuLyTangLuong() {								 	// Hàm 'Click - Tăng lương' - Dùng trong Xử lí sự kiện: 'Tăng lương' - Quốc
+    private void xuLyTangLuong() { 
         int row = table.getSelectedRow();
         if (row < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần tăng lương!", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -477,8 +829,14 @@ public class QuanLyNhanVien extends NhanVienUI {
         JPanel panel = new JPanel(new GridLayout(0, 1));
         panel.add(new JLabel("Chọn hình thức tăng lương cho: " + hoTen));
 
-        String[] options = { "KPI Loại A (Xuất sắc)", "KPI Loại B (Giỏi)", "KPI Loại C (Khá)", "Nhập tay %" };
-        JComboBox < String > cboOption = new JComboBox < > (options);
+        String[] options = { 
+            "KPI Loại A (Xuất sắc - 20%)", 
+            "KPI Loại B (Giỏi - 10%)", 
+            "KPI Loại C (Khá - 5%)", 
+            "Theo Thâm Niên (Tự động)", 
+            "Nhập tay %" 
+        };
+        JComboBox<String> cboOption = new JComboBox<>(options);
         panel.add(cboOption);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Xét Duyệt Tăng Lương", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -486,34 +844,32 @@ public class QuanLyNhanVien extends NhanVienUI {
         if (result == JOptionPane.OK_OPTION) {
             double luongMoi = 0;
             double phanTram = 0;
-
             int selectedIndex = cboOption.getSelectedIndex();
 
             try {
-                if (selectedIndex == 0) {
-                    luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "A");
-                } else if (selectedIndex == 1) {
-                    luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "B");
-                } else if (selectedIndex == 2) {
-                    luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "C");
-                } else {
+                if (selectedIndex == 0) luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "A");
+                else if (selectedIndex == 1) luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "B");
+                else if (selectedIndex == 2) luongMoi = XuLyTangLuong.tinhLuongTheoKPI(luongCu, "C");
+                else if (selectedIndex == 3) { 
+                    NhanVien nvFull = dao.getNhanVienTheoMa(maNV); 
+                    if (nvFull != null && nvFull.getNgayVaoLam() != null) {
+                        luongMoi = XuLyTangLuong.tinhLuongTheoThamNien(luongCu, nvFull.getNgayVaoLam());
+                        if (luongMoi == luongCu) {
+                            JOptionPane.showMessageDialog(this, "Nhân viên này thâm niên dưới 1 năm, chưa đủ điều kiện tăng!");
+                            return;
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không tìm thấy dữ liệu ngày vào làm!");
+                        return;
+                    }
+                } else { 
                     String input = JOptionPane.showInputDialog(this, "Nhập % muốn tăng:", "5");
-
-                    if (input == null || input.trim().isEmpty()) {
-                        return;
-                    }
-
-                    try {
-                        phanTram = Double.parseDouble(input);
-                    } catch (NumberFormatException e) {
-                        JOptionPane.showMessageDialog(this, "Vui lòng nhập số hợp lệ!");
-                        return;
-                    }
-
+                    if (input == null || input.trim().isEmpty()) return;
+                    phanTram = Double.parseDouble(input);
                     luongMoi = luongCu * (1 + phanTram / 100);
                 }
 
-                if (selectedIndex <= 2) {
+                if (selectedIndex <= 3) {
                     phanTram = ((luongMoi - luongCu) / luongCu) * 100;
                 }
 
@@ -523,33 +879,26 @@ public class QuanLyNhanVien extends NhanVienUI {
                 int confirm = JOptionPane.showConfirmDialog(this, msg, "Xác Nhận", JOptionPane.YES_NO_OPTION);
 
                 if (confirm == JOptionPane.YES_OPTION) {
-                    NhanVienDAO dao = new NhanVienDAO();
                     dao.tangLuong(maNV, phanTram);
-
+                    String lyDo = options[selectedIndex]; 
+                    String chiTiet = String.format("<html>- Lý do: %s<br>- Lương cũ: %,.0f VNĐ<br>- Lương mới: <font color='red'><b>%,.0f VNĐ</b></font> (Tăng %.1f%%)</html>", lyDo, luongCu, luongMoi, phanTram);
+                    dao.ghiLichSu(maNV, "Tăng Lương", chiTiet, taiKhoanHienTai);
                     JOptionPane.showMessageDialog(this, "Đã tăng lương thành công!");
                     loadData("NV.MaNV ASC");
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
             }
         }
     }
 
-    private void fillTable(List < NhanVien > list) { 				// Hàm 'Vẽ bảng' - Dùng trong Hàm 'Lau bảng (Danh sách)' và Hàm 'Tiện ích' - Việt
+    private void fillTable(List < NhanVien > list) { 
         model.setRowCount(0);
-
         for (NhanVien nv: list) {
             java.util.Vector < Object > row = new java.util.Vector < > ();
             row.add(nv.getMaNV());
             row.add(nv.getHoTen());
-
-            if (nv.getTenPB() != null) {
-                row.add(nv.getTenPB());
-            } else {
-                row.add(nv.getMaPB());
-            }
-
+            row.add(nv.getTenPB() != null ? nv.getTenPB() : nv.getMaPB());
             row.add(String.format("%,d", nv.getLuongCoBan()));
             if (nv.getNgayVaoLam() != null) {
                 LocalDate start = new java.util.Date(nv.getNgayVaoLam().getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -564,27 +913,14 @@ public class QuanLyNhanVien extends NhanVienUI {
             row.add(nv.getSoNgayDiTre() + " ngày");
             row.add(String.format("%,d", nv.getTienPhat()));
             row.add(String.format("%,d", nv.getThucLinh()));
-
             model.addRow(row);
         }
     }
 
-	private void loadData(String orderBy) { 						// Hàm 'Lau bảng (Danh sách)' - Việt
-	        String[] columns = { 				// Dùng trong Xử lí sự kiện: 'Click- Cập nhật Phạt', 'Thêm', 'Xóa', 'Sửa'
-	            "Mã NV",
-	            "Họ Tên",
-            "Phòng Ban",
-            "Lương Cứng",
-            "Thâm Niên",
-            "Hệ Số",
-            "Thưởng",
-            "Đi Trễ",
-            "Tiền Phạt",
-            "Thực Lĩnh"
-        };
+    private void loadData(String orderBy) { 
+        String[] columns = {"Mã NV", "Họ Tên", "Phòng Ban", "Lương Cơ Bản", "Thâm Niên", "Hệ Số", "Thưởng", "Đi Trễ", "Tiền Phạt", "Thực Lĩnh"};
         model = new DefaultTableModel(columns, 0);
         table.setModel(model);
-
         table.getColumnModel().getColumn(0).setPreferredWidth(60);
         table.getColumnModel().getColumn(1).setPreferredWidth(140);
         table.getColumnModel().getColumn(2).setPreferredWidth(140);
@@ -592,66 +928,50 @@ public class QuanLyNhanVien extends NhanVienUI {
         table.getColumnModel().getColumn(4).setPreferredWidth(80);
         table.getColumnModel().getColumn(5).setPreferredWidth(50);
         table.getColumnModel().getColumn(8).setPreferredWidth(80);
-
         List < NhanVien > list = dao.layDanhSachNhanVien(orderBy);
         fillTable(list);
     }
 
-    private void reloadTable(String orderBy) { 						// Hàm 'Tiện ích'- Dùng trong Hàm 'Tìm thông tin' - Việt
-        List < NhanVien > list = dao.timKiemDaNang(lastMa, lastTen, lastPhong, lastLuong, orderBy);
-
+    private void reloadTable(String orderBy) { 
+        List < NhanVien > list = dao.timKiemDaNang(lastMa, lastTen, lastPhong, lastLuong,lastHeSo, orderBy);
         if (list.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Không tìm thấy dữ liệu!");
             return;
         }
-
         if (orderBy.contains("HoTen")) {
-            Collections.sort(list, new Comparator < NhanVien > () {
-                @Override
-                public int compare(NhanVien nv1, NhanVien nv2) {
-                    String ten1 = getTen(nv1.getHoTen());
-                    String ten2 = getTen(nv2.getHoTen());
-
-                    Collator collator = Collator.getInstance(Locale.of("vi", "VN"));
-
-                    int result = collator.compare(ten1, ten2);
-                    if (result == 0) {
-                        return collator.compare(nv1.getHoTen(), nv2.getHoTen());
-                    }
-
-                    return result;
-                }
+            Collections.sort(list, (nv1, nv2) -> {
+                String ten1 = getTen(nv1.getHoTen());
+                String ten2 = getTen(nv2.getHoTen());
+                Collator collator = Collator.getInstance(Locale.of("vi", "VN"));
+                int result = collator.compare(ten1, ten2);
+                return result == 0 ? collator.compare(nv1.getHoTen(), nv2.getHoTen()) : result;
             });
         }
-
         fillTable(list);
     }
 
-    private String getTen(String hoTen) { 							// Hàm 'Lấy chữ cái' - Dùng trong Hàm 'Tiện ích' - Việt
+    private String getTen(String hoTen) { 
         if (hoTen == null || hoTen.trim().isEmpty()) return "";
-
         hoTen = hoTen.trim();
-
         String[] parts = hoTen.split("\\s+");
-
         return parts[parts.length - 1];
     }
 
-    private void xuLyTimKiemDaNang() { 								// Hàm 'Tìm thông tin' - Dùng trong Xử lí sự kiện: 'Tìm Kiếm' - Việt
+    private void xuLyTimKiemDaNang() { 
         lastMa = txtMaNV.getText().trim();
         lastTen = txtHoTen.getText().trim();
-        lastPhong = txtPhongBan.getText().trim();
-        lastLuong = txtLuongCoBan.getText().replace(",", "").replace(".", "").trim();
-
-        if (lastMa.isEmpty() && lastTen.isEmpty() && lastPhong.isEmpty() && lastLuong.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập ít nhất một thông tin để tìm kiếm!");
-            return;
-        }
-
+        
+        String selectedPhong = cboPhongBan.getSelectedItem() != null ? cboPhongBan.getSelectedItem().toString() : "";
+        lastPhong = selectedPhong.equals("Tất cả Phòng Ban") ? "" : selectedPhong;
+        
+        lastLuong = cboLuongCoBan.getSelectedItem() != null ? cboLuongCoBan.getSelectedItem().toString() : "";
+        
+        lastHeSo = cboHeSo.getSelectedItem() != null ? cboHeSo.getSelectedItem().toString() : "";
+        
         reloadTable("NV.MaNV ASC");
     }
 
-    private void hienThiCuaSoDanhBa() { 							// Hàm 'Cửa sổ danh bạ'- Dùng trong Hàm 'Phân quyền' - Việt
+    private void hienThiCuaSoDanhBa() { 
         JDialog dialog = new JDialog(this, "Danh Bạ Nhân Viên", true);
         dialog.setSize(600, 550);
         dialog.setLocationRelativeTo(this);
@@ -678,20 +998,13 @@ public class QuanLyNhanVien extends NhanVienUI {
         txtTimDanhBa.setToolTipText("Nhập Tên hoặc Mã NV để tìm...");
         dialog.getContentPane().add(txtTimDanhBa);
 
-        String[] cols = {
-            "Mã NV",
-            "Họ Tên",
-            "Phòng Ban"
-        };
+        String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban"};
         DefaultTableModel modelDanhBa = new DefaultTableModel(cols, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
 
         JTable tableDanhBa = new JTable(modelDanhBa);
-
         tableDanhBa.setFocusable(false);
         tableDanhBa.setRowSelectionAllowed(false);
         tableDanhBa.setColumnSelectionAllowed(false);
@@ -705,33 +1018,24 @@ public class QuanLyNhanVien extends NhanVienUI {
         Runnable napDuLieu = () -> {
             String phongDuocChon = cboPhong.getSelectedItem().toString();
             String tuKhoa = txtTimDanhBa.getText().trim();
-
             List < NhanVien > list = dao.timKiemDanhBa(phongDuocChon, tuKhoa);
-
             modelDanhBa.setRowCount(0);
             for (NhanVien nv: list) {
-                modelDanhBa.addRow(new Object[] {
-                    nv.getMaNV(),
-                    nv.getHoTen(),
-                    nv.getTenPB()
-                });
+                modelDanhBa.addRow(new Object[] { nv.getMaNV(), nv.getHoTen(), nv.getTenPB() });
             }
         };
 
-        cboPhong.addActionListener(_ -> napDuLieu.run());
-
+        cboPhong.addActionListener(e -> napDuLieu.run());
         txtTimDanhBa.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyReleased(KeyEvent e) {
-                napDuLieu.run();
-            }
+            public void keyReleased(KeyEvent e) { napDuLieu.run(); }
         });
 
         napDuLieu.run();
         dialog.setVisible(true);
     }
 
-    private void hienThiFormDoiMatKhau() { 							// Hàm 'Đổi mật khẩu' - Dùng trong Hàm 'Phân quyền' - Việt
+    private void hienThiFormDoiMatKhau() { 
         JDialog dialog = new JDialog(this, "Đổi Mật Khẩu", true);
         dialog.setSize(400, 300);
         dialog.setLocationRelativeTo(this);
@@ -763,7 +1067,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         btnLuu.setBackground(Color.GREEN);
         dialog.getContentPane().add(btnLuu);
 
-        btnLuu.addActionListener(_ -> { 							// Xử lí sự kiện: 'Lưu' 						
+        btnLuu.addActionListener(e -> {
             String cu = new String(txtPassCu.getPassword());
             String moi = new String(txtPassMoi.getPassword());
             String xacNhan = new String(txtPassXacNhan.getPassword());
@@ -772,24 +1076,21 @@ public class QuanLyNhanVien extends NhanVienUI {
                 JOptionPane.showMessageDialog(dialog, "Vui lòng nhập đầy đủ thông tin!");
                 return;
             }
-
             if (!moi.equals(xacNhan)) {
                 JOptionPane.showMessageDialog(dialog, "Mật khẩu xác nhận không trùng khớp!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
             if (dao.doiMatKhau(taiKhoanHienTai, cu, moi)) {
                 JOptionPane.showMessageDialog(dialog, "✅ Đổi mật khẩu thành công!");
-                dialog.dispose(); // Tắt cửa sổ
+                dialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(dialog, "❌ Mật khẩu cũ không đúng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         });
-
         dialog.setVisible(true);
     }
 
-    private void hienThiDanhSachTaiKhoanAdmin() { 					// Hàm 'Danh sách tài khoản - Admin' - Dùng trong Hàm 'Phân quyền' - Việt
+    private void hienThiDanhSachTaiKhoanAdmin() { 
         JDialog dialog = new JDialog(this, "Danh Sách Tài Khoản & Mật Khẩu", true);
         dialog.setSize(800, 500);
         dialog.setLocationRelativeTo(this);
@@ -812,19 +1113,10 @@ public class QuanLyNhanVien extends NhanVienUI {
         txtTimKiem.setToolTipText("Nhập Mã NV, Tên hoặc Tài khoản để tìm...");
         dialog.getContentPane().add(txtTimKiem);
 
-        String[] cols = {
-            "Mã NV",
-            "Họ Tên",
-            "Phòng Ban",
-            "Tài Khoản",
-            "Mật Khẩu"
-        };
-
+        String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban", "Tài Khoản", "Mật Khẩu"};
         DefaultTableModel modelTK = new DefaultTableModel(cols, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 4;
-            }
+            public boolean isCellEditable(int row, int column) { return column == 4; }
         };
 
         JTable tableTK = new JTable(modelTK);
@@ -832,7 +1124,6 @@ public class QuanLyNhanVien extends NhanVienUI {
         tableTK.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tableTK.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         tableTK.getColumnModel().getColumn(1).setPreferredWidth(150);
-
         tableTK.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 
         JScrollPane sp = new JScrollPane(tableTK);
@@ -845,12 +1136,10 @@ public class QuanLyNhanVien extends NhanVienUI {
             if (e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
                 int row = e.getFirstRow();
                 int column = e.getColumn();
-
                 if (column == 4 && row >= 0) {
                     String passMoi = modelTK.getValueAt(row, column).toString();
                     String username = modelTK.getValueAt(row, 3).toString();
                     String maNV = modelTK.getValueAt(row, 0).toString();
-
                     if (dao.capNhatMatKhau(username, passMoi)) {
                         for (String[] item: listGoc) {
                             if (item[0].equals(maNV)) {
@@ -868,12 +1157,8 @@ public class QuanLyNhanVien extends NhanVienUI {
         Runnable boLocDuLieu = () -> {
             String tuKhoa = txtTimKiem.getText().toLowerCase().trim();
             modelTK.setRowCount(0);
-
             for (String[] row: listGoc) {
-                if (row[0].toLowerCase().contains(tuKhoa) ||
-                    row[1].toLowerCase().contains(tuKhoa) ||
-                    row[3].toLowerCase().contains(tuKhoa)) {
-
+                if (row[0].toLowerCase().contains(tuKhoa) || row[1].toLowerCase().contains(tuKhoa) || row[3].toLowerCase().contains(tuKhoa)) {
                     modelTK.addRow(row);
                 }
             }
@@ -881,16 +1166,14 @@ public class QuanLyNhanVien extends NhanVienUI {
 
         txtTimKiem.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
-            public void keyReleased(java.awt.event.KeyEvent e) {
-                boLocDuLieu.run();
-            }
+            public void keyReleased(java.awt.event.KeyEvent e) { boLocDuLieu.run(); }
         });
 
         boLocDuLieu.run();
         dialog.setVisible(true);
     }
     
-    private void xuLyGiamLuong() {									// Hàm 'Giảm lương' - Dùng trong Xử lí sự kiện: 'Giảm lương' - Việt
+    private void xuLyGiamLuong() { 
         int row = table.getSelectedRow();
         if (row < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần giảm lương!", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -903,10 +1186,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         double luongCu = Double.parseDouble(luongCuStr);
 
         String input = JOptionPane.showInputDialog(this, "Nhập % muốn giảm cho " + hoTen + ":", "10");
-
-        if (input == null || input.trim().isEmpty()) {
-            return;
-        }
+        if (input == null || input.trim().isEmpty()) return;
 
         double phanTram = 0;
         try {
@@ -921,19 +1201,14 @@ public class QuanLyNhanVien extends NhanVienUI {
         }
 
         double luongMoi = luongCu * (1 - phanTram / 100);
-
-        String msg = String.format("CẢNH BÁO GIẢM LƯƠNG\n\nNhân viên: %s\nLương cũ: %,.0f VNĐ\nLương mới: %,.0f VNĐ\n(Giảm: %.1f%%)\n\nXác nhận thực hiện?",
-            hoTen, luongCu, luongMoi, phanTram);
-
+        String msg = String.format("CẢNH BÁO GIẢM LƯƠNG\n\nNhân viên: %s\nLương cũ: %,.0f VNĐ\nLương mới: %,.0f VNĐ\n(Giảm: %.1f%%)\n\nXác nhận thực hiện?", hoTen, luongCu, luongMoi, phanTram);
         int confirm = JOptionPane.showConfirmDialog(this, msg, "Xác Nhận Giảm Lương", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 NhanVienDAO dao = new NhanVienDAO();
                 dao.tangLuong(maNV, -phanTram);
-
                 JOptionPane.showMessageDialog(this, "Đã giảm lương thành công!");
-
                 loadData("NV.MaNV ASC");
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -942,11 +1217,19 @@ public class QuanLyNhanVien extends NhanVienUI {
         }
     }
 
-    private void hienThiFormBaoLoi() {								// Hàm 'Giao diện Báo lỗi' - Việt
+    private void hienThiFormBaoLoi() { 
         JDialog dialog = new JDialog(this, "Gửi Báo Cáo Lỗi", true);
         dialog.setSize(400, 300);
         dialog.setLocationRelativeTo(this);
         dialog.getContentPane().setLayout(null);
+        
+        if (isCheatMode()) {
+            JLabel lblGradius = new JLabel("Nothing here but GRADIUS_1986.");
+            lblGradius.setFont(new Font("Segoe UI", Font.ITALIC | Font.BOLD, 10));
+            lblGradius.setForeground(Color.GRAY);
+            lblGradius.setBounds(120, 50, 200, 15); // Nằm ngay dưới ô nhập tiêu đề
+            dialog.getContentPane().add(lblGradius);
+        }
 
         JLabel lblTieuDe = new JLabel("Tiêu đề lỗi:");
         lblTieuDe.setBounds(20, 20, 100, 30);
@@ -971,7 +1254,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         JButton btnGui = new JButton("Gửi báo cáo");
         btnGui.setBounds(130, 210, 120, 30);
 
-        btnGui.addActionListener(_ -> {
+        btnGui.addActionListener(e -> {
             String tieuDe = txtTieuDe.getText().trim();
             String noiDung = txtNoiDung.getText().trim();
 
@@ -979,14 +1262,16 @@ public class QuanLyNhanVien extends NhanVienUI {
                 JOptionPane.showMessageDialog(dialog, "Vui lòng nhập đầy đủ thông tin!", "Thiếu thông tin", JOptionPane.WARNING_MESSAGE);
                 return;
             }
+            
+            if (isCheatMode() && tieuDe.equals("GRADIUS_1986")) {
+                // Gọi về hàm của cửa sổ cha để ghi nhận
+                QuanLyNhanVien.this.unlockSecret("GRADIUS"); 
+                dialog.dispose();
+                return; 
+            }
 
             NhanVienDAO dao = new NhanVienDAO();
             dao.guiBaoLoi(tieuDe, noiDung);
-
-            new Thread(() -> {
-                logic.DiscordWebhook.guiThongBao(tieuDe, noiDung);
-            }).start();
-
             JOptionPane.showMessageDialog(dialog, "Cảm ơn! Báo cáo của bạn đã được gửi.");
             dialog.dispose();
         });
@@ -995,14 +1280,9 @@ public class QuanLyNhanVien extends NhanVienUI {
         dialog.setVisible(true);
     }
     
-    private void xuLyThuongNong() {									// Hàm 'Xử lí thưởng nóng' - Việt
+    private void xuLyThuongNong() { 
         String[] options = {"Toàn Công Ty", "Theo Phòng Ban", "Hủy"};
-        int choice = JOptionPane.showOptionDialog(this, 
-                "Bạn muốn thưởng nóng cho đối tượng nào?", 
-                "Chọn Chế Độ Thưởng", 
-                JOptionPane.DEFAULT_OPTION, 
-                JOptionPane.QUESTION_MESSAGE, 
-                null, options, options[0]);
+        int choice = JOptionPane.showOptionDialog(this, "Bạn muốn thưởng nóng cho đối tượng nào?", "Chọn Chế Độ Thưởng", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
         if (choice == 2 || choice == -1) return;
 
@@ -1034,21 +1314,12 @@ public class QuanLyNhanVien extends NhanVienUI {
             for (int i = 0; i < table.getRowCount(); i++) {
                 danhSachPhong.add(table.getValueAt(i, 2).toString());
             }
-
             if (danhSachPhong.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Danh sách trống, không tìm thấy phòng ban nào!");
                 return;
             }
-
             String[] cacPhong = danhSachPhong.toArray(new String[0]);
-            
-            String phongDuocChon = (String) JOptionPane.showInputDialog(this, 
-                    "Chọn phòng ban cần thưởng:", 
-                    "Danh Sách Phòng", 
-                    JOptionPane.QUESTION_MESSAGE, 
-                    null, 
-                    cacPhong, 
-                    cacPhong[0]);
+            String phongDuocChon = (String) JOptionPane.showInputDialog(this, "Chọn phòng ban cần thưởng:", "Danh Sách Phòng", JOptionPane.QUESTION_MESSAGE, null, cacPhong, cacPhong[0]);
 
             if (phongDuocChon != null) {
                 if (dao.congTienThuongTheoPhong(phongDuocChon, tienThuong)) {
@@ -1061,11 +1332,8 @@ public class QuanLyNhanVien extends NhanVienUI {
         }
     }
 
-    private void xuLyChotThang() {									// Hàm 'Chốt tháng' - Việt
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "BẠN CÓ CHẮC MUỐN CHỐT SỔ THÁNG NÀY?\n\nHành động này sẽ:\n- Xóa hết số ngày đi trễ.\n- Xóa hết tiền phạt.\n- Xóa hết tiền thưởng.\n\nĐể bắt đầu tính lương cho tháng mới.", 
-            "Cảnh báo Reset", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            
+    private void xuLyChotThang() { 
+        int confirm = JOptionPane.showConfirmDialog(this, "BẠN CÓ CHẮC MUỐN CHỐT SỔ THÁNG NÀY?\n\nHành động này sẽ:\n- Xóa hết số ngày đi trễ.\n- Xóa hết tiền phạt.\n- Xóa hết tiền thưởng.\n\nĐể bắt đầu tính lương cho tháng mới.", "Cảnh báo Reset", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm == JOptionPane.YES_OPTION) {
             if (dao.resetThangMoi()) {
                 JOptionPane.showMessageDialog(this, "✅ Đã reset dữ liệu cho tháng mới!");
@@ -1076,11 +1344,10 @@ public class QuanLyNhanVien extends NhanVienUI {
         }
     }
 
-    private void xuLyXuatExcel() {									// Hàm 'Xuất Excel' - Việt
+    private void xuLyXuatExcel() { 
         javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
         fileChooser.setDialogTitle("Chọn nơi lưu file Excel");
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Excel File (*.csv)", "csv"));
-        
         int userSelection = fileChooser.showSaveDialog(this);
         
         if (userSelection == javax.swing.JFileChooser.APPROVE_OPTION) {
@@ -1089,16 +1356,13 @@ public class QuanLyNhanVien extends NhanVienUI {
             if (!filePath.toLowerCase().endsWith(".csv")) {
                 filePath += ".csv";
             }
-            
             try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(filePath), java.nio.charset.StandardCharsets.UTF_8))) {
                 bw.write("\uFEFF"); 
-                
                 for (int i = 0; i < table.getColumnCount(); i++) {
                     bw.write(table.getColumnName(i));
                     if (i < table.getColumnCount() - 1) bw.write(",");
                 }
                 bw.newLine();
-                
                 for (int i = 0; i < table.getRowCount(); i++) {
                     for (int j = 0; j < table.getColumnCount(); j++) {
                         String val = table.getValueAt(i, j).toString();
@@ -1108,13 +1372,260 @@ public class QuanLyNhanVien extends NhanVienUI {
                     }
                     bw.newLine();
                 }
-                
                 JOptionPane.showMessageDialog(this, "✅ Xuất file Excel thành công!\n" + filePath);
                 java.awt.Desktop.getDesktop().open(new java.io.File(filePath));
-                
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "❌ Lỗi khi xuất file: " + ex.getMessage());
             }
         }
+    }
+    
+    private void hienThiBangLichSu() {
+        JDialog dialog = new JDialog(this, "Nhật Ký Hoạt Động Hệ Thống", true);
+        dialog.setSize(1200, 600); 
+        dialog.setLocationRelativeTo(this);
+        
+        String[] cols = {"ID", "Nhân Viên Bị Tác Động", "Hành Động", "Chi Tiết Thay Đổi", "Người Thực Hiện", "Thời Gian"};
+        
+        DefaultTableModel modelLS = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        
+        JTable tblLS = new JTable(modelLS);
+        tblLS.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        
+        tblLS.getColumnModel().getColumn(0).setPreferredWidth(50);  
+        tblLS.getColumnModel().getColumn(1).setPreferredWidth(200); 
+        tblLS.getColumnModel().getColumn(2).setPreferredWidth(120); 
+        tblLS.getColumnModel().getColumn(3).setPreferredWidth(450); 
+        tblLS.getColumnModel().getColumn(4).setPreferredWidth(120); 
+        tblLS.getColumnModel().getColumn(5).setPreferredWidth(150); 
+        
+        List<String[]> logs = dao.layDanhSachLichSu();
+        for (String[] row : logs) {
+            modelLS.addRow(row);
+        }
+        
+        for (int i = 0; i < tblLS.getRowCount(); i++) {
+            String noiDung = tblLS.getValueAt(i, 3).toString(); 
+            int soDong = noiDung.split("<br>").length;
+            int chieuCaoCanThiet = Math.max(40, soDong * 22 + 15);
+            tblLS.setRowHeight(i, chieuCaoCanThiet);
+        }
+        
+        dialog.add(new JScrollPane(tblLS));
+        dialog.setVisible(true);
+    }
+
+    private boolean isCheatMode() {
+        return "K_HASHIMOTO".equalsIgnoreCase(taiKhoanHienTai) || "SuperAdmin".equalsIgnoreCase(taiKhoanHienTai);
+    }
+
+    public void kichHoatGiaoDienHoangKim() {
+        Color Light = new Color(129, 212, 250);
+        Color White = new Color(236, 240, 241);
+        Color grayBackground = new Color(38, 50, 56);
+
+        this.getContentPane().setBackground(grayBackground);
+        
+        toMauNeonToanBo(this.getContentPane(), Light, White, grayBackground);
+        
+        table.setBackground(grayBackground);
+        table.setForeground(White);
+        table.setGridColor(new Color(55, 71, 79));
+        table.getTableHeader().setBackground(new Color(55, 71, 79));
+        table.getTableHeader().setForeground(Light);
+        
+        this.revalidate();
+        this.repaint();
+        
+        JOptionPane.showMessageDialog(this, "NEON MODE ACTIVATED! ⚡", "Easter Egg", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void toMauNeonToanBo(java.awt.Container container, Color pink, Color blue, Color bg) {
+        for (java.awt.Component c : container.getComponents()) {
+            c.setBackground(bg); // Mặc định các thành phần khác theo màu nền đen
+            
+            if (c instanceof javax.swing.JButton) {
+                c.setForeground(blue); // Chữ vẫn màu xanh Neon
+                
+                // --- [THÊM DÒNG NÀY] ---
+                c.setBackground(Color.DARK_GRAY); // Đổi nền nút thành màu Xám Đậm cho ngầu
+                // Nếu cậu thích xám sáng hơn thì đổi thành: c.setBackground(Color.GRAY);
+                // -----------------------
+                
+                ((javax.swing.JButton) c).setBorder(javax.swing.BorderFactory.createLineBorder(pink, 2)); // Viền hồng
+            } 
+            else if (c instanceof javax.swing.JLabel) {
+                c.setForeground(pink);
+            } 
+            else if (c instanceof javax.swing.JPanel) {
+                c.setBackground(bg);
+                ((javax.swing.JPanel) c).setBorder(javax.swing.BorderFactory.createTitledBorder(
+                    javax.swing.BorderFactory.createLineBorder(pink), 
+                    ((javax.swing.JPanel) c).getBorder() != null ? "SYSTEM INFO" : "", 
+                    0, 0, null, pink));
+                toMauNeonToanBo((java.awt.Container) c, pink, blue, bg);
+            }
+            else if (c instanceof javax.swing.text.JTextComponent) { 
+                c.setForeground(Color.WHITE); 
+                ((javax.swing.text.JTextComponent) c).setCaretColor(pink); 
+                ((javax.swing.JComponent) c).setBorder(javax.swing.BorderFactory.createLineBorder(blue)); 
+            }
+        }
+    }
+
+    private void hienThiCuaSoKhoiPhuc() {
+        JDialog dialog = new JDialog(this, "Thùng Rác Hệ Thống", true);
+        dialog.setSize(600, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban"};
+        DefaultTableModel m = new DefaultTableModel(cols, 0);
+        JTable t = new JTable(m);
+        
+        List<NhanVien> list = dao.layDanhSachNhanVienDaXoa();
+        for (NhanVien nv : list) {
+            m.addRow(new Object[]{nv.getMaNV(), nv.getHoTen(), nv.getTenPB()});
+        }
+
+        JButton btnRestore = new JButton("Khôi Phục Nhân Viên");
+        btnRestore.addActionListener(e -> {
+            int row = t.getSelectedRow();
+            if (row < 0) {
+                JOptionPane.showMessageDialog(dialog, "Vui lòng chọn nhân viên!");
+                return;
+            }
+            String ma = t.getValueAt(row, 0).toString();
+            if (dao.khoiPhucNhanVien(ma)) {
+                JOptionPane.showMessageDialog(dialog, "✅ Khôi phục thành công!");
+                dialog.dispose();
+                loadData("NV.MaNV ASC");
+            }
+        });
+
+        dialog.add(new JScrollPane(t), BorderLayout.CENTER);
+        dialog.add(btnRestore, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+    
+    private void unlockSecret(String codeName) {
+        if (!secretsFound.contains(codeName)) {
+            secretsFound.add(codeName);
+            // Thông báo riêng cho từng cái
+            if (codeName.equals("CONTRA")) 
+                JOptionPane.showMessageDialog(this, "🔫 CONTRA SURVIVOR: Tìm thấy nhân viên bất tử (30 Lives)!");
+            else if (codeName.equals("SNAKE")) 
+                JOptionPane.showMessageDialog(this, "🐍 SNAKE EATER: Nhiệm vụ xóa dữ liệu bí mật hoàn tất!");
+            else if (codeName.equals("GRADIUS")) 
+                JOptionPane.showMessageDialog(this, "🚀 GRADIUS OPTION: Hệ thống đã được nâng cấp!");
+
+            // Kiểm tra đủ 3 cái chưa
+            if (secretsFound.size() >= 3 && !isNeonUnlocked) {
+                isNeonUnlocked = true;
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(this, "🎉 CHÚC MỪNG! BẠN ĐÃ MỞ KHÓA GIAO DIỆN NEON!\n\n👉 Hãy nhấn phím 'V' để kích hoạt ngay!", "Easter Egg Complete", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
+
+    public void khoiPhucGiaoDienGoc() {
+        // Màu mặc định của Swing/Windows (hoặc màu cậu tự định nghĩa ban đầu)
+        Color defaultBg = new Color(240, 240, 240); // Màu xám nhạt chuẩn
+        Color defaultText = Color.BLACK;
+        
+        this.getContentPane().setBackground(defaultBg);
+        
+        // Gọi hàm đệ quy để reset màu toàn bộ
+        resetMauToanBo(this.getContentPane(), defaultBg, defaultText);
+        
+        // Reset bảng
+        table.setBackground(Color.WHITE);
+        table.setForeground(Color.BLACK);
+        table.setGridColor(new Color(200, 200, 200)); // Màu kẻ bảng xám nhạt
+        table.getTableHeader().setBackground(new Color(230, 230, 230)); // Header xám
+        table.getTableHeader().setForeground(Color.BLACK);
+        
+        this.revalidate();
+        this.repaint();
+        
+        JOptionPane.showMessageDialog(this, "Back to Reality! 🌍", "Deactivated", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void resetMauToanBo(java.awt.Container container, Color bg, Color text) {
+        for (java.awt.Component c : container.getComponents()) {
+            // Khôi phục nền
+            if (c instanceof javax.swing.JPanel) {
+                c.setBackground(bg); // Panel về màu nền chuẩn
+                // Khôi phục viền panel (TitledBorder)
+                if (((javax.swing.JPanel) c).getBorder() instanceof javax.swing.border.TitledBorder) {
+                    ((javax.swing.border.TitledBorder)((javax.swing.JPanel) c).getBorder()).setTitleColor(Color.BLACK);
+                    ((javax.swing.border.TitledBorder)((javax.swing.JPanel) c).getBorder()).setBorder(javax.swing.BorderFactory.createLineBorder(Color.GRAY));
+                }
+            } 
+            else if (c instanceof javax.swing.JButton) {
+                c.setForeground(text);
+                ((javax.swing.JButton) c).setBorder(javax.swing.UIManager.getBorder("Button.border")); // Trả về viền mặc định
+            }
+            else if (c instanceof javax.swing.JLabel) {
+                c.setForeground(text);
+            }
+            else if (c instanceof javax.swing.text.JTextComponent) {
+                c.setForeground(Color.BLACK);
+                c.setBackground(Color.WHITE); // Ô nhập liệu về nền trắng
+                ((javax.swing.text.JTextComponent) c).setCaretColor(Color.BLACK);
+                ((javax.swing.JComponent) c).setBorder(javax.swing.UIManager.getBorder("TextField.border"));
+            }
+            
+            // Đệ quy
+            if (c instanceof java.awt.Container) {
+                resetMauToanBo((java.awt.Container) c, bg, text);
+            }
+        }
+    }
+    
+    private void hienThiGoiYCheat() {
+        if (!isCheatMode()) return; 
+
+        Font fontHint = new Font("Segoe UI", Font.ITALIC | Font.BOLD, 11);
+        Color colorHint = new Color(120, 120, 120);
+
+        // --- HINT 1: SNAKE ---
+        // [SỬA] Bỏ chữ "JLabel" đi -> lblSnake = ...
+        lblSnake = new JLabel("Try Delete Some Enemy, Huh?");
+        lblSnake.setFont(fontHint);
+        lblSnake.setForeground(colorHint);
+        lblSnake.setBounds(630, 167, 200, 20); 
+        
+        // [THÊM] Nếu cậu muốn mặc định nó ẩn đi thì thêm dòng này:
+        lblSnake.setVisible(false); 
+        
+        this.getLayeredPane().add(lblSnake, javax.swing.JLayeredPane.POPUP_LAYER);
+
+        // --- HINT 2: CONTRA ---
+        lblContraHint = new JLabel("Go Find 30 Lives, Nigga.");
+        lblContraHint.setFont(fontHint);
+        lblContraHint.setForeground(colorHint);
+        lblContraHint.setBounds(430, 167, 200, 20); 
+        lblContraHint.setVisible(false); 
+        this.getLayeredPane().add(lblContraHint, javax.swing.JLayeredPane.POPUP_LAYER);
+
+        // --- HINT 3: NEON ---
+        // [SỬA] Bỏ chữ "JLabel" đi -> lblNeon = ...
+        lblNeon = new JLabel("Press 'V' When You Know To Press...");
+        lblNeon.setFont(fontHint);
+        lblNeon.setForeground(colorHint);
+        lblNeon.setBounds(410, 127, 200, 20); 
+        
+        // [THÊM] Nếu muốn ẩn luôn cái này thì thêm:
+        lblNeon.setVisible(false); 
+        
+        this.getLayeredPane().add(lblNeon, javax.swing.JLayeredPane.POPUP_LAYER);
+        
+        this.repaint();
     }
 }

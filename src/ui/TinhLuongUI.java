@@ -139,7 +139,7 @@ public class TinhLuongUI extends JFrame {
     }
 
     private void initEvents() {
-        btnTinhLuong.addActionListener(_ -> xuLyTinhLuong());
+        btnTinhLuong.addActionListener(e -> xuLyTinhLuong());
         
         // Khi sửa giờ chuẩn thì tự tính lại lương 1 giờ
         txtGioLamChuan.addKeyListener(new java.awt.event.KeyAdapter() {

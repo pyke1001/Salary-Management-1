@@ -8,9 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,7 +19,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 
-import database.ConnectDB;
+
 
 public class DangNhapUI extends JFrame {
 	
@@ -37,7 +35,8 @@ public class DangNhapUI extends JFrame {
         KeyEvent.VK_B, KeyEvent.VK_A
     };
     private int currentPosition = 0;
-
+    private static java.util.Set<String> unlockedAchievements = new java.util.HashSet<>();
+    
     public DangNhapUI() {																	// Hàm khởi tạo
         initUI();
         initEvents();
@@ -93,7 +92,7 @@ public class DangNhapUI extends JFrame {
         btnQuenMK.setFont(new Font("Segoe UI", Font.BOLD, 11));
         getContentPane().add(btnQuenMK);
 
-        btnQuenMK.addActionListener(_ -> {
+        btnQuenMK.addActionListener(e -> {
             String thongBao = "Quên mật khẩu?\n" +
                               "Vui lòng liên hệ Admin qua số XXXX-XXX-772 hoặc user 'pyke1001' tại Discord!\n" +
                               "(Warning: Đừng thắc mắc về tên Discord của Admin)";
@@ -118,9 +117,9 @@ public class DangNhapUI extends JFrame {
     }
 
     private void initEvents() {																// Hàm 'Xử lí sự kiện'
-        btnLogin.addActionListener(_ -> xuLyDangNhap());
-        btnThoat.addActionListener(_ -> System.exit(0));
-        txtPass.addActionListener(_ -> xuLyDangNhap());
+        btnLogin.addActionListener(e -> xuLyDangNhap());
+        btnThoat.addActionListener(e -> System.exit(0));
+        txtPass.addActionListener(e -> xuLyDangNhap());
 
         KeyListener konamiListener = new KeyAdapter() {
             @Override
@@ -141,7 +140,7 @@ public class DangNhapUI extends JFrame {
     }
 
     private void xuLyDangNhap() {															// Hàm 'Đăng nhập'
-        String u = txtUser.getText();
+        String u = txtUser.getText().trim();
         String p = new String(txtPass.getPassword());
 
         if (u.isEmpty() || p.isEmpty()) {
@@ -150,28 +149,20 @@ public class DangNhapUI extends JFrame {
         }
 
         try {
-            Connection conn = ConnectDB.getConnection();
-            String sql = "SELECT * FROM TaiKhoan WHERE Username = ? AND Password = ?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, u);
-            ps.setString(2, p);
-            
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-            	String role = rs.getString("Role");
-                JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
+        	dao.NhanVienDAO dao = new dao.NhanVienDAO();
+            String role = dao.kiemTraDangNhap(u, p);
+            if (role != null) {
+            	JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
                 this.dispose();
-                new QuanLyNhanVien(u, role).setVisible(true);
+                new QuanLyNhanVien(u.toUpperCase(), role).setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            	JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
-            conn.close();
-        } catch (Exception ex) {
+            } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Lỗi kết nối CSDL!");
+            JOptionPane.showMessageDialog(this, "Lỗi kết nối hoặc lỗi dữ liệu!");
         }
     }
-
     private void checkKonamiCode(int keyCode) {												// Hàm 'Konami - Kiểm tra'
         if (keyCode == KONAMI_CODE[currentPosition]) {
             currentPosition++;
@@ -194,9 +185,36 @@ public class DangNhapUI extends JFrame {
 
     private void moGiaoDienChinh() {														// Hàm 'Mở giao diện phần mềm'
         this.dispose();
-        new QuanLyNhanVien("SuperAdmin", "Admin").setVisible(true);
+        new QuanLyNhanVien("K_Hashimoto", "Admin").setVisible(true);
     }
+    
+ // Hàm kiểm tra và trao giải thưởng (Đã căn giữa đẹp mắt)
+    public static void checkAndUnlock(java.awt.Component parent, String eggName, String desc) {
+        if (!unlockedAchievements.contains(eggName)) {
+            unlockedAchievements.add(eggName);
+            
+            // --- DÙNG HTML ĐỂ CĂN GIỮA VÀ ĐỊNH DẠNG CHỮ ---
+            String msg = "<html><div style='text-align: center; width: 250px;'>" + // Định độ rộng để ép xuống dòng đẹp
+                         "<font size='5' color='#E67E22'><b>🏆 THÀNH TỰU MỚI!</b></font><br><br>" + // Tiêu đề màu cam to
+                         "<font size='4' color='#2980B9'><b>" + eggName + "</b></font><br>" +     // Tên trứng màu xanh
+                         "<i>" + desc + "</i>" + // Mô tả in nghiêng
+                         "</div></html>";
+            // -----------------------------------------------
 
+            // Nếu tìm đủ 3 trứng thì thêm lời chúc mừng
+            if (unlockedAchievements.size() >= 3) { 
+                msg = msg.replace("</div></html>", 
+                      "<br><br><font color='red'><b>🎁 HUYỀN THOẠI KONAMI ĐÃ ĐƯỢC MỞ KHÓA!</b></font></div></html>");
+                
+                // Kích hoạt giao diện vàng (nếu đang ở màn hình chính)
+                if (parent instanceof QuanLyNhanVien) {
+                    ((QuanLyNhanVien) parent).kichHoatGiaoDienHoangKim();
+                }
+            }
+            
+            javax.swing.JOptionPane.showMessageDialog(parent, msg, "Achievement Unlocked", javax.swing.JOptionPane.PLAIN_MESSAGE);
+        }
+    }
     public static void main(String[] args) {												// Hàm main
         DangNhapUI loginScreen = new DangNhapUI();
         loginScreen.setVisible(true);

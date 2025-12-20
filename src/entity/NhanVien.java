@@ -14,6 +14,7 @@ public class NhanVien {
     private long thucLinh;
     private String tenPB;
     private Date ngayVaoLam;
+    private long phuCap;
 
     public NhanVien() {
     }
@@ -62,12 +63,22 @@ public class NhanVien {
 
     public long getTienPhat() { return tienPhat; }
     public void setTienPhat(long tienPhat) { this.tienPhat = tienPhat; }
+    
+    public long getPhuCap() {
+        return phuCap;
+    }
 
-    public long getThucLinh() { return thucLinh; }
-    public void setThucLinh(long thucLinh) { this.thucLinh = thucLinh; }
+    public void setPhuCap(long phuCap) {
+        this.phuCap = phuCap;
+    }
 
-    public String getTenPB() { return tenPB; }
-    public void setTenPB(String tenPB) { this.tenPB = tenPB; }
+    public String getTenPB() {
+        return tenPB;
+    }
+
+    public void setTenPB(String tenPB) {
+        this.tenPB = tenPB;
+    }
 
     public Date getNgayVaoLam() {
         return ngayVaoLam;
@@ -75,5 +86,11 @@ public class NhanVien {
 
     public void setNgayVaoLam(Date ngayVaoLam) {
         this.ngayVaoLam = ngayVaoLam;
+    }
+    
+    public long getThucLinh() {
+        long luongChinh = (long) (luongCoBan * heSoLuong);
+        // Công thức: Lương cứng + Phụ cấp + Thưởng - Phạt
+        return luongChinh + phuCap + tienThuong - tienPhat;
     }
 }
