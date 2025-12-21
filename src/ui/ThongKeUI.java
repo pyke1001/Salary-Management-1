@@ -30,15 +30,14 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 public class ThongKeUI extends JFrame {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private DefaultTableModel mainModel;
 
-    // --- BỘ MÀU SẮC CHUẨN PROFESSIONAL ---
-    private final Color COL_PRIMARY = new Color(0, 102, 204);     // Xanh dương (Chủ đạo)
-    private final Color COL_SUCCESS = new Color(40, 167, 69);     // Xanh lá (Tiền/Thưởng)
-    private final Color COL_DANGER = new Color(220, 53, 69);      // Đỏ (Phạt/Lỗi)
-    private final Color COL_WARNING = new Color(255, 140, 0);     // Cam/Vàng (Cảnh báo/Trung bình)
-    private final Color COL_INFO = new Color(102, 51, 153);       // Tím (Thông tin đặc biệt)
+    private final Color COL_PRIMARY = new Color(0, 102, 204);     
+    private final Color COL_SUCCESS = new Color(40, 167, 69);    
+    private final Color COL_DANGER = new Color(220, 53, 69);      
+    private final Color COL_WARNING = new Color(255, 140, 0);     
+    private final Color COL_INFO = new Color(102, 51, 153);       
     
     private final Font FONT_HEADER = new Font("Segoe UI", Font.BOLD, 14);
 
@@ -89,12 +88,6 @@ public class ThongKeUI extends JFrame {
         add(pnlBot, BorderLayout.SOUTH);
     }
 
-    // ========================================================================
-    // TAB 1: TỔNG QUAN (DASHBOARD)
-    // ========================================================================
-    // ========================================================================
-    // TAB 1: TỔNG QUAN (DASHBOARD) - ĐÃ NÂNG CẤP BIỂU ĐỒ
-    // ========================================================================
     private JPanel taoPanelTongQuan() {
         // 1. Panel chính dùng BorderLayout để xếp Trên - Dưới
         JPanel pnlMain = new JPanel(new BorderLayout(0, 20));
@@ -134,12 +127,6 @@ public class ThongKeUI extends JFrame {
         return pnlMain;
     }
 
-    // ========================================================================
-    // TAB 2: TÀI CHÍNH PHÒNG BAN (Phân tích chi phí)
-    // ========================================================================
-    // ========================================================================
-    // TAB 2: TÀI CHÍNH PHÒNG BAN (Đã nâng cấp biểu đồ)
-    // ========================================================================
     private JPanel taoPanelTaiChinhPhongBan() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -200,9 +187,6 @@ public class ThongKeUI extends JFrame {
         return pnl;
     }
 
-    // ========================================================================
-    // TAB 3: DANH SÁCH KHEN THƯỞNG
-    // ========================================================================
     private JPanel taoPanelKhenThuong() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -265,9 +249,6 @@ public class ThongKeUI extends JFrame {
         return pnl;
     }
 
-    // ========================================================================
-    // TAB 4: THEO DÕI VI PHẠM
-    // ========================================================================
     private JPanel taoPanelViPham() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -334,9 +315,6 @@ public class ThongKeUI extends JFrame {
         return pnl;
     }
 
-    // ========================================================================
-    // CÁC HÀM HỖ TRỢ (HELPER METHODS)
-    // ========================================================================
     private JPanel taoOThongKe(String title, String value, Color color) {
         JPanel pnl = new JPanel(new BorderLayout());
         pnl.setBackground(color);
@@ -472,7 +450,6 @@ public class ThongKeUI extends JFrame {
         table.setShowGrid(true);
     }
     
- // Hàm tạo Panel chứa 2 biểu đồ Dashboard (Admin)
     private JPanel createChartPanel() {
         JPanel p = new JPanel(new GridLayout(1, 2, 20, 0)); // Chia đôi màn hình
         p.setBackground(Color.WHITE);
@@ -613,7 +590,6 @@ public class ThongKeUI extends JFrame {
         return p;
     }
     
- // Hàm vẽ 2 biểu đồ cho Tab Tài Chính
     private String layTenVietTat(String tenPhong) {
         String temp = tenPhong.toLowerCase().replace("phòng", "").trim();
         if (temp.isEmpty()) return tenPhong;

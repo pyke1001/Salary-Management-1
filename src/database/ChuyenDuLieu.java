@@ -10,17 +10,18 @@ import java.text.SimpleDateFormat;
 public class ChuyenDuLieu {
 
     public static void main(String[] args) {
-        System.out.println(">>> DANG BAT DAU CHUYEN DU LIEU (BAN FINAL - FIX LOCK)...");
+        System.out.println(">>> DANG BAT DAU CHUYEN DU LIEU (FULL COLUMNS)...");
         
-        // Khai báo biến connection ở ngoài để dễ quản lý đóng/mở
         Connection connSQL = null;
         Connection connSQLite = null;
 
         try {
+            // 1. KẾT NỐI HAI BÊN
             String sqlUrl = "jdbc:sqlserver://localhost:1433;databaseName=Konami;encrypt=true;trustServerCertificate=true";
             String sqlUser = "sa";
             String sqlPass = "123456"; 
 
+            // Thêm date_string_format để SQLite hiểu ngày tháng
             String sqliteUrl = "jdbc:sqlite:konami_data.db?date_string_format=yyyy-MM-dd";
 
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -28,22 +29,39 @@ public class ChuyenDuLieu {
             
             Class.forName("org.sqlite.JDBC");
             connSQLite = DriverManager.getConnection(sqliteUrl);
-            connSQLite.setAutoCommit(false); // Bắt đầu transaction
+            connSQLite.setAutoCommit(false); 
 
-            // --- 1. TẠO BẢNG & XÓA DỮ LIỆU CŨ ---
+            // 2. TẠO BẢNG (ĐÃ BỔ SUNG ĐỦ CỘT)
             Statement stmt = connSQLite.createStatement();
             stmt.execute("DROP TABLE IF EXISTS TaiKhoan");
             stmt.execute("DROP TABLE IF EXISTS NhanVien");
             stmt.execute("DROP TABLE IF EXISTS PhongBan");
+            // Thêm bảng phụ cho đủ bộ
+            stmt.execute("DROP TABLE IF EXISTS BaoLoi");
+            stmt.execute("DROP TABLE IF EXISTS LichSuHoatDong");
 
             stmt.execute("CREATE TABLE PhongBan (MaPB TEXT PRIMARY KEY, TenPB TEXT)");
-            stmt.execute("CREATE TABLE NhanVien (MaNV TEXT PRIMARY KEY, HoTen TEXT, MaPB TEXT, LuongCoBan INTEGER, HeSoLuong REAL, NgayVaoLam TEXT, SoNgayDiTre INTEGER DEFAULT 0, TienPhat INTEGER DEFAULT 0, TienThuong INTEGER DEFAULT 0, FOREIGN KEY(MaPB) REFERENCES PhongBan(MaPB))");
+            
+            // [QUAN TRỌNG] Đã thêm: NgaySinh, GioiTinh, SDT, PhuCap, DaXoa
+            stmt.execute("CREATE TABLE NhanVien (" +
+                         "MaNV TEXT PRIMARY KEY, HoTen TEXT, MaPB TEXT, " +
+                         "LuongCoBan INTEGER, HeSoLuong REAL, " +
+                         "NgaySinh TEXT, GioiTinh TEXT, SDT TEXT, PhuCap INTEGER, " + // Cột mới
+                         "NgayVaoLam TEXT, SoNgayDiTre INTEGER DEFAULT 0, " +
+                         "TienPhat INTEGER DEFAULT 0, TienThuong INTEGER DEFAULT 0, " +
+                         "DaXoa INTEGER DEFAULT 0, " + // Cột mới
+                         "FOREIGN KEY(MaPB) REFERENCES PhongBan(MaPB))");
+                         
             stmt.execute("CREATE TABLE TaiKhoan (Username TEXT PRIMARY KEY, Password TEXT, Role TEXT, FOREIGN KEY(Username) REFERENCES NhanVien(MaNV))");
             
-            stmt.close(); // Đóng ngay Statement sau khi dùng
-            System.out.println(">>> Da xay lai nha moi.");
+            // Tạo thêm 2 bảng phụ để tránh lỗi khi chạy app
+            stmt.execute("CREATE TABLE BaoLoi (MaLoi INTEGER PRIMARY KEY AUTOINCREMENT, TieuDe TEXT, NoiDung TEXT, NgayBao TEXT, TrangThai TEXT)");
+            stmt.execute("CREATE TABLE LichSuHoatDong (MaLog INTEGER PRIMARY KEY AUTOINCREMENT, MaNV TEXT, HanhDong TEXT, ChiTiet TEXT, NgayThucHien TEXT, NguoiThucHien TEXT)");
+            
+            stmt.close();
+            System.out.println(">>> Da tao bang day du.");
 
-            // --- 2. CHUYỂN PHÒNG BAN ---
+            // 3. CHUYỂN PHÒNG BAN
             String queryPB = "SELECT * FROM PhongBan";
             PreparedStatement pstSQL_PB = connSQL.prepareStatement(queryPB);
             ResultSet rsPB = pstSQL_PB.executeQuery();
@@ -51,23 +69,21 @@ public class ChuyenDuLieu {
             String insertPB = "INSERT INTO PhongBan (MaPB, TenPB) VALUES (?, ?)";
             PreparedStatement pstLite_PB = connSQLite.prepareStatement(insertPB);
 
-            int countPB = 0;
             while (rsPB.next()) {
                 pstLite_PB.setString(1, rsPB.getString("MaPB"));
                 pstLite_PB.setString(2, rsPB.getString("TenPB"));
                 pstLite_PB.executeUpdate();
-                countPB++;
             }
-            pstLite_PB.close(); // <--- QUAN TRỌNG: Đóng ngay
+            pstLite_PB.close();
             pstSQL_PB.close();
-            System.out.println(">>> Da chuyen " + countPB + " Phong ban.");
 
-            // --- 3. CHUYỂN NHÂN VIÊN ---
+            // 4. CHUYỂN NHÂN VIÊN (ĐÃ SỬA)
             String queryNV = "SELECT * FROM NhanVien";
             PreparedStatement pstSQL_NV = connSQL.prepareStatement(queryNV);
             ResultSet rsNV = pstSQL_NV.executeQuery();
 
-            String insertNV = "INSERT INTO NhanVien (MaNV, HoTen, MaPB, LuongCoBan, HeSoLuong, NgayVaoLam, SoNgayDiTre, TienPhat, TienThuong) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            // [QUAN TRỌNG] Thêm placeholders cho cột mới
+            String insertNV = "INSERT INTO NhanVien (MaNV, HoTen, MaPB, LuongCoBan, HeSoLuong, NgaySinh, GioiTinh, SDT, PhuCap, NgayVaoLam, SoNgayDiTre, TienPhat, TienThuong, DaXoa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement pstLite_NV = connSQLite.prepareStatement(insertNV);
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -78,23 +94,29 @@ public class ChuyenDuLieu {
                 pstLite_NV.setString(3, rsNV.getString("MaPB"));
                 pstLite_NV.setLong(4, rsNV.getLong("LuongCoBan"));
                 pstLite_NV.setFloat(5, rsNV.getFloat("HeSoLuong"));
-                try {
-                    pstLite_NV.setString(6, sdf.format(rsNV.getDate("NgayVaoLam")));
-                } catch (Exception e) {
-                    pstLite_NV.setString(6, "2024-01-01"); 
-                }
-                pstLite_NV.setInt(7, rsNV.getInt("SoNgayDiTre"));
-                pstLite_NV.setLong(8, rsNV.getLong("TienPhat"));
-                pstLite_NV.setLong(9, rsNV.getLong("TienThuong"));
+                
+                // Xử lý các cột mới
+                try { pstLite_NV.setString(6, rsNV.getDate("NgaySinh") != null ? sdf.format(rsNV.getDate("NgaySinh")) : null); } catch (Exception e) { pstLite_NV.setString(6, null); }
+                pstLite_NV.setString(7, rsNV.getString("GioiTinh"));
+                pstLite_NV.setString(8, rsNV.getString("SDT"));
+                pstLite_NV.setLong(9, rsNV.getLong("PhuCap"));
+
+                try { pstLite_NV.setString(10, sdf.format(rsNV.getDate("NgayVaoLam"))); } catch (Exception e) { pstLite_NV.setString(10, "2024-01-01"); }
+                
+                pstLite_NV.setInt(11, rsNV.getInt("SoNgayDiTre"));
+                pstLite_NV.setLong(12, rsNV.getLong("TienPhat"));
+                pstLite_NV.setLong(13, rsNV.getLong("TienThuong"));
+                pstLite_NV.setInt(14, rsNV.getBoolean("DaXoa") ? 1 : 0); // Chuyển bit sang int
+
                 pstLite_NV.addBatch();
                 countNV++;
             }
             pstLite_NV.executeBatch();
-            pstLite_NV.close(); // <--- QUAN TRỌNG: Đóng ngay
+            pstLite_NV.close();
             pstSQL_NV.close();
             System.out.println(">>> Da chuyen " + countNV + " Nhan vien.");
             
-            // --- 4. CHUYỂN TÀI KHOẢN (KÈM ROLE) ---
+            // 5. CHUYỂN TÀI KHOẢN
             String queryTK = "SELECT * FROM TaiKhoan";
             PreparedStatement pstSQL_TK = connSQL.prepareStatement(queryTK);
             ResultSet rsTK = pstSQL_TK.executeQuery();
@@ -106,31 +128,24 @@ public class ChuyenDuLieu {
             while (rsTK.next()) {
                 pstLite_TK.setString(1, rsTK.getString("Username"));
                 pstLite_TK.setString(2, rsTK.getString("Password"));
-                try {
-                    // Nếu chưa có cột Role ở SQL Server thì tạm set là Admin để test
-                     pstLite_TK.setString(3, "Admin"); 
-                    // pstLite_TK.setString(3, rsTK.getString("Role")); 
-                } catch (Exception e) {
-                    pstLite_TK.setString(3, "Admin"); 
-                }
+                // Lấy đúng cột Role từ SQL Server luôn
+                pstLite_TK.setString(3, rsTK.getString("Role")); 
                 pstLite_TK.addBatch();
                 countTK++;
             }
             pstLite_TK.executeBatch();
-            pstLite_TK.close(); // <--- QUAN TRỌNG: Đóng ngay
+            pstLite_TK.close();
             pstSQL_TK.close();
             System.out.println(">>> Da chuyen " + countTK + " Tai khoan.");
 
-            // CHỐT ĐƠN
+            // CHỐT GIAO DỊCH
             connSQLite.commit();
-            System.out.println(">>> THANH CONG! KHONG CON LOI LOCKED.");
+            System.out.println(">>> XONG! File konami_data.db da san sang de gui di.");
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Nếu lỗi thì Rollback để không hỏng file
             try { if (connSQLite != null) connSQLite.rollback(); } catch (Exception ex) {}
         } finally {
-            // Đảm bảo đóng kết nối cuối cùng
             try { if (connSQL != null) connSQL.close(); } catch (Exception ex) {}
             try { if (connSQLite != null) connSQLite.close(); } catch (Exception ex) {}
         }

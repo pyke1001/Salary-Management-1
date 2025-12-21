@@ -1442,7 +1442,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         this.revalidate();
         this.repaint();
         
-        JOptionPane.showMessageDialog(this, "NEON MODE ACTIVATED! ⚡", "Easter Egg", JOptionPane.INFORMATION_MESSAGE);
+        
     }
     
     private void toMauNeonToanBo(java.awt.Container container, Color pink, Color blue, Color bg) {
@@ -1479,7 +1479,7 @@ public class QuanLyNhanVien extends NhanVienUI {
     }
 
     private void hienThiCuaSoKhoiPhuc() {
-        JDialog dialog = new JDialog(this, "Thùng Rác Hệ Thống", true);
+        JDialog dialog = new JDialog(this, "Hồ Sơ Lưu Trữ", true);
         dialog.setSize(600, 400);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
@@ -1502,6 +1502,7 @@ public class QuanLyNhanVien extends NhanVienUI {
             }
             String ma = t.getValueAt(row, 0).toString();
             if (dao.khoiPhucNhanVien(ma)) {
+            	dao.taoLaiTaiKhoan(ma, "123");
                 JOptionPane.showMessageDialog(dialog, "✅ Khôi phục thành công!");
                 dialog.dispose();
                 loadData("NV.MaNV ASC");
@@ -1516,38 +1517,34 @@ public class QuanLyNhanVien extends NhanVienUI {
     private void unlockSecret(String codeName) {
         if (!secretsFound.contains(codeName)) {
             secretsFound.add(codeName);
-            // Thông báo riêng cho từng cái
             if (codeName.equals("CONTRA")) 
-                JOptionPane.showMessageDialog(this, "🔫 CONTRA SURVIVOR: Tìm thấy nhân viên bất tử (30 Lives)!");
+                JOptionPane.showMessageDialog(this, "🔫 CONTRA SURVIVOR: Tìm thấy nhân viên thứ 30 (30 Lives)!");
             else if (codeName.equals("SNAKE")) 
                 JOptionPane.showMessageDialog(this, "🐍 SNAKE EATER: Nhiệm vụ xóa dữ liệu bí mật hoàn tất!");
             else if (codeName.equals("GRADIUS")) 
                 JOptionPane.showMessageDialog(this, "🚀 GRADIUS OPTION: Hệ thống đã được nâng cấp!");
 
-            // Kiểm tra đủ 3 cái chưa
             if (secretsFound.size() >= 3 && !isNeonUnlocked) {
                 isNeonUnlocked = true;
                 java.awt.Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(this, "🎉 CHÚC MỪNG! BẠN ĐÃ MỞ KHÓA GIAO DIỆN NEON!\n\n👉 Hãy nhấn phím 'V' để kích hoạt ngay!", "Easter Egg Complete", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "🎉 CHÚC MỪNG! BẠN ĐÃ MỞ KHÓA GIAO DIỆN ẨN!\n\n👉 Hãy nhấn phím 'V' để kích hoạt ngay!", "Easter Egg Complete", JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }
 
     public void khoiPhucGiaoDienGoc() {
-        // Màu mặc định của Swing/Windows (hoặc màu cậu tự định nghĩa ban đầu)
-        Color defaultBg = new Color(240, 240, 240); // Màu xám nhạt chuẩn
+        Color defaultBg = new Color(240, 240, 240);
         Color defaultText = Color.BLACK;
         
         this.getContentPane().setBackground(defaultBg);
-        
-        // Gọi hàm đệ quy để reset màu toàn bộ
+
         resetMauToanBo(this.getContentPane(), defaultBg, defaultText);
         
         // Reset bảng
         table.setBackground(Color.WHITE);
         table.setForeground(Color.BLACK);
-        table.setGridColor(new Color(200, 200, 200)); // Màu kẻ bảng xám nhạt
-        table.getTableHeader().setBackground(new Color(230, 230, 230)); // Header xám
+        table.setGridColor(new Color(200, 200, 200)); 
+        table.getTableHeader().setBackground(new Color(230, 230, 230));
         table.getTableHeader().setForeground(Color.BLACK);
         
         this.revalidate();
@@ -1558,7 +1555,7 @@ public class QuanLyNhanVien extends NhanVienUI {
 
     private void resetMauToanBo(java.awt.Container container, Color bg, Color text) {
         for (java.awt.Component c : container.getComponents()) {
-            // Khôi phục nền
+
             if (c instanceof javax.swing.JPanel) {
                 c.setBackground(bg); // Panel về màu nền chuẩn
                 // Khôi phục viền panel (TitledBorder)
@@ -1596,7 +1593,7 @@ public class QuanLyNhanVien extends NhanVienUI {
 
         // --- HINT 1: SNAKE ---
         // [SỬA] Bỏ chữ "JLabel" đi -> lblSnake = ...
-        lblSnake = new JLabel("Try Delete Some Enemy, Huh?");
+        lblSnake = new JLabel("Solid Snake...");
         lblSnake.setFont(fontHint);
         lblSnake.setForeground(colorHint);
         lblSnake.setBounds(630, 167, 200, 20); 
@@ -1607,7 +1604,7 @@ public class QuanLyNhanVien extends NhanVienUI {
         this.getLayeredPane().add(lblSnake, javax.swing.JLayeredPane.POPUP_LAYER);
 
         // --- HINT 2: CONTRA ---
-        lblContraHint = new JLabel("Go Find 30 Lives, Nigga.");
+        lblContraHint = new JLabel("Where are the 30 lives?");
         lblContraHint.setFont(fontHint);
         lblContraHint.setForeground(colorHint);
         lblContraHint.setBounds(430, 167, 200, 20); 
@@ -1616,7 +1613,7 @@ public class QuanLyNhanVien extends NhanVienUI {
 
         // --- HINT 3: NEON ---
         // [SỬA] Bỏ chữ "JLabel" đi -> lblNeon = ...
-        lblNeon = new JLabel("Press 'V' When You Know To Press...");
+        lblNeon = new JLabel("Press 'V' once it is unlocked...");
         lblNeon.setFont(fontHint);
         lblNeon.setForeground(colorHint);
         lblNeon.setBounds(410, 127, 200, 20); 

@@ -21,24 +21,37 @@ public class ConnectDB {
 
     public static Connection getConnection() {
         Properties props = new Properties();
+        boolean coFileCauHinh = false; // 1. Thêm biến cờ để kiểm tra
         
         try {
             File f = new File(getRealPath(CONFIG_FILE));
             if (f.exists()) {
-                try (FileInputStream in = new FileInputStream(f)) { props.load(in); }
+                try (FileInputStream in = new FileInputStream(f)) { 
+                    props.load(in); 
+                    coFileCauHinh = true; // 2. Nếu file tồn tại thì đánh dấu là True
+                }
             } else {
                 setDefaults(props);
+                // File không tồn tại -> coFileCauHinh vẫn là False
             }
         } catch (Exception ex) {
             setDefaults(props);
         }
 
+        // 3. LOGIC MỚI: Nếu chưa có file cấu hình -> Hiện bảng ngay lập tức!
+        if (!coFileCauHinh) {
+            // Nếu người dùng bấm Cancel (hàm trả về true) thì thoát app luôn
+            if (showConfigDialog(props)) System.exit(0);
+        }
+
+        // 4. Sau khi đã cấu hình xong (hoặc đã có file), mới bắt đầu thử kết nối
         while (true) {
             try {
                 Connection conn = tryConnect(props);
                 if (conn != null) return conn;
             } catch (Exception ex) {}
 
+            // Nếu kết nối thất bại (vd: sai pass SQL Server) thì lại hiện bảng
             if (showConfigDialog(props)) System.exit(0);
         }
     }
@@ -62,7 +75,7 @@ public class ConnectDB {
                 Class.forName("org.sqlite.JDBC");
                 String dbPath = getRealPath("konami_data.db");
                 
-                javax.swing.JOptionPane.showMessageDialog(null, "App đang tìm DB tại:\n" + dbPath);
+                // [ĐÃ XÓA] Dòng thông báo tìm DB ở đây đã bay màu theo yêu cầu!
                 
                 c = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
                 

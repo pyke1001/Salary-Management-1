@@ -7,24 +7,20 @@ import logic.MayTinhLuong;
 
 public class TinhLuongUI extends JFrame {
     
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
-    // Các ô nhập liệu
     private JTextField txtHoTen, txtLuongCung, txtLuongMotGio, txtGioLamChuan, txtGioTangCa, txtHeSoTangCa;
     private JCheckBox chkNghiThaiSan;
     private JTextArea txtKetQua;
     private JButton btnTinhLuong;
     
-    // Biến lưu dữ liệu truyền từ bảng chính sang
     private String hoTenNV;
     private long luongCoBan;
 
-    // Constructor mặc định (ít dùng)
     public TinhLuongUI() {
         this("Nhân viên vãng lai", 0);
     }
 
-    // Constructor CÓ THAM SỐ (Dùng cái này để nhận dữ liệu)
     public TinhLuongUI(String hoTen, long luongCoBan) {
         this.hoTenNV = hoTen;
         this.luongCoBan = luongCoBan;
@@ -120,7 +116,6 @@ public class TinhLuongUI extends JFrame {
         add(sp);
     }
     
-    // Hàm phụ trợ tạo Label nhanh
     private JLabel createLabel(String text, int x, int y) {
         JLabel lbl = new JLabel(text);
         lbl.setBounds(x, y, 120, 30);
