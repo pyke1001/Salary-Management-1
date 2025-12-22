@@ -1,5 +1,5 @@
 package entity;
-																	// Entity - Việt
+
 import java.util.Date;
 
 public class NhanVien {
@@ -11,7 +11,6 @@ public class NhanVien {
     private long tienThuong;
     private int soNgayDiTre;
     private long tienPhat;
-    private long thucLinh;
     private String tenPB;
     private Date ngayVaoLam;
     private long phuCap;
@@ -28,7 +27,7 @@ public class NhanVien {
         this.ngayVaoLam = new Date();
     }
 
-    public NhanVien(String maNV, String hoTen, String maPB, long luongCoBan, float heSoLuong, long tienThuong, int soNgayDiTre, long tienPhat, long thucLinh) {
+    public NhanVien(String maNV, String hoTen, String maPB, long luongCoBan, float heSoLuong, long tienThuong, int soNgayDiTre, long tienPhat, long phuCap) {
         this.maNV = maNV;
         this.hoTen = hoTen;
         this.maPB = maPB;
@@ -37,7 +36,7 @@ public class NhanVien {
         this.tienThuong = tienThuong;
         this.soNgayDiTre = soNgayDiTre;
         this.tienPhat = tienPhat;
-        this.thucLinh = thucLinh;
+        this.phuCap = phuCap;
     }
 
     public String getMaNV() { return maNV; }
@@ -64,33 +63,18 @@ public class NhanVien {
     public long getTienPhat() { return tienPhat; }
     public void setTienPhat(long tienPhat) { this.tienPhat = tienPhat; }
     
-    public long getPhuCap() {
-        return phuCap;
-    }
+    public long getPhuCap() { return phuCap; }
+    public void setPhuCap(long phuCap) { this.phuCap = phuCap; }
 
-    public void setPhuCap(long phuCap) {
-        this.phuCap = phuCap;
-    }
+    public String getTenPB() { return tenPB; }
+    public void setTenPB(String tenPB) { this.tenPB = tenPB; }
 
-    public String getTenPB() {
-        return tenPB;
-    }
-
-    public void setTenPB(String tenPB) {
-        this.tenPB = tenPB;
-    }
-
-    public Date getNgayVaoLam() {
-        return ngayVaoLam;
-    }
-
-    public void setNgayVaoLam(Date ngayVaoLam) {
-        this.ngayVaoLam = ngayVaoLam;
-    }
+    public Date getNgayVaoLam() { return ngayVaoLam; }
+    public void setNgayVaoLam(Date ngayVaoLam) { this.ngayVaoLam = ngayVaoLam; }
     
-    public long getThucLinh() {
-        long luongChinh = (long) (luongCoBan * heSoLuong);
+    public long getThucLinh() { 
+    	long luongCung = (long) (luongCoBan * heSoLuong);
         // Công thức: Lương cứng + Phụ cấp + Thưởng - Phạt
-        return luongChinh + phuCap + tienThuong - tienPhat;
+        return luongCung + phuCap + tienThuong - tienPhat;
     }
 }

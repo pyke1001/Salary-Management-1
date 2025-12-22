@@ -18,13 +18,28 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 public class NhanVienUI extends JFrame {
+	
+	protected String lastMa = "";
+	protected String lastTen = "";
+	protected String lastPhong = "";
+	protected String lastLuong = "";
+	protected String taiKhoanHienTai;
+	protected String quyenHienTai;
+	protected String lastHeSo = "";
+	protected java.util.Set<String> secretsFound = new java.util.HashSet<>();
+	protected boolean isNeonUnlocked = false;
+	protected boolean isNeonActive = false;
+
+	protected JLabel lblContraHint;
+	protected JLabel lblSnake;
+	protected JLabel lblNeon;
 
     protected JTable table;
     protected DefaultTableModel model;
     protected JButton btnThem, btnSua, btnXoa, btnPhat, btnLoad, btnMoTinhLuong;
     
     protected JLabel lblMa, lblTen, lblPhong, lblLuong, lblHS, lblSort;
-    protected JButton btnLamMoi, btnTangLuong, btnThongKe, btnBaoLoi;
+    protected JButton btnLamMoi, btnTangLuong, btnThongKe, btnBaoLoi, btnChamCongLe;
     protected JButton btnTimKiem, btnQuanLyTK, btnGiamLuong, btnChotThang, btnXuatExcel, btnThuongNong;
     protected JButton btnSortMa, btnSortTen, btnSortLuong, btnLichSu, btnKhoiPhuc;
     
@@ -311,5 +326,11 @@ public class NhanVienUI extends JFrame {
         JScrollPane sp = new JScrollPane(table);
         sp.setBounds(10, 195, 965, 360); 
         getContentPane().add(sp);
+        
+        btnChamCongLe = new JButton("🎁 Chấm Công Lễ");
+        btnChamCongLe.setBounds(615, 165, 175, 25);
+        getContentPane().add(btnChamCongLe);
+        btnChamCongLe.setBackground(new Color(255, 215, 0));
+        btnChamCongLe.setFont(new Font("Dialog", Font.BOLD, 12));
     }
 }

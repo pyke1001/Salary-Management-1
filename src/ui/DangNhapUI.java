@@ -21,7 +21,7 @@ import javax.swing.ToolTipManager;
 public class DangNhapUI extends JFrame {
     
     private static final long serialVersionUID = 2L;
-
+    
     private JTextField txtUser;
     private JPasswordField txtPass;
     private JButton btnLogin;
@@ -112,7 +112,7 @@ public class DangNhapUI extends JFrame {
         lblVersion.setBounds(336, 373, 75, 20);
         getContentPane().add(lblVersion);
 
-        JLabel lblHint = new JLabel("↑ ↓ ↓ ↓ ← → ← → B A", SwingConstants.RIGHT);
+        JLabel lblHint = new JLabel("↑ ↑ ↓ ↓ ← → ← → B A", SwingConstants.RIGHT);
         lblHint.setBounds(177, 100, 106, 20);
         lblHint.setFont(new Font("Consolas", Font.ITALIC, 10));
         lblHint.setForeground(new Color(70, 70, 70)); 
@@ -265,11 +265,7 @@ public class DangNhapUI extends JFrame {
             if (unlockedAchievements.size() >= 3) { 
                 msg = msg.replace("</div></html>", 
                       "<br><br><font color='red'><b>🎁 HUYỀN THOẠI KONAMI ĐÃ ĐƯỢC MỞ KHÓA!</b></font></div></html>");
-                
-                if (parent instanceof QuanLyNhanVien) {
-                    ((QuanLyNhanVien) parent).kichHoatGiaoDienHoangKim();
                 }
-            }
             
             javax.swing.JOptionPane.showMessageDialog(parent, msg, "Achievement Unlocked", javax.swing.JOptionPane.PLAIN_MESSAGE);
         }

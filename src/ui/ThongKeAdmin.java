@@ -29,7 +29,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class ThongKeUI extends JFrame {
+public class ThongKeAdmin extends JFrame {
     private static final long serialVersionUID = 2L;
     private DefaultTableModel mainModel;
 
@@ -41,7 +41,7 @@ public class ThongKeUI extends JFrame {
     
     private final Font FONT_HEADER = new Font("Segoe UI", Font.BOLD, 14);
 
-    public ThongKeUI(DefaultTableModel model) {
+    public ThongKeAdmin(DefaultTableModel model) {
         this.mainModel = model;
         initUI();
     }

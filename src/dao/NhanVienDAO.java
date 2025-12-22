@@ -526,4 +526,17 @@ public class NhanVienDAO {
             ps.executeUpdate();
         } catch (Exception e) { e.printStackTrace(); }
     }
+    
+    public boolean congTienThuongChoNhanVien(String maNV, long soTien) {
+        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ? WHERE MaNV = ?";
+        try (Connection conn = ConnectDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, soTien);
+            stmt.setString(2, maNV);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+            return false; 
+        }
+    }
 }
