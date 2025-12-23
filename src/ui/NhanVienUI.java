@@ -182,6 +182,10 @@ public class NhanVienUI extends JFrame {
 
         // --- CÁC NÚT SẮP XẾP & CHỨC NĂNG DƯỚI ---
         btnSortMa = new JButton("Mã NV");
+        btnSortMa.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
         btnSortMa.setBounds(160, 165, 80, 25);
         btnSortMa.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         getContentPane().add(btnSortMa);
