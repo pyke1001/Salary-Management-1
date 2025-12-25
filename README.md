@@ -71,7 +71,7 @@ Thay vì các tính năng nhân sự phức tạp, hệ thống tập trung tố
 ### 🔐 Tài khoản Demo
 | Role | User | Pass | Quyền hạn |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin` | `123` | Toàn quyền tính lương, sửa đổi hệ số, chốt sổ |
+| **Admin** | `admin` | `123456` | Toàn quyền tính lương, sửa đổi hệ số, chốt sổ |
 | **User** | `NV001` | `123` | Xem phiếu lương cá nhân, xem lịch sử |
 
 ---
