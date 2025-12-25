@@ -319,13 +319,24 @@ public class NhanVienDAO {
 
     public List<NhanVien> timKiemDanhBa(String tenPhong, String tuKhoa) {
         List<NhanVien> list = new ArrayList<>();
-        String sql = "SELECT NV.MaNV, NV.HoTen, PB.TenPB FROM NhanVien NV JOIN PhongBan PB ON NV.MaPB = PB.MaPB WHERE PB.TenPB LIKE ? AND (NV.HoTen LIKE ? OR NV.MaNV LIKE ?)";
+        
+        // [FIX] Thêm điều kiện: AND NV.MaNV NOT IN ('admin', 'pyke1001')
+        String sql = "SELECT NV.MaNV, NV.HoTen, PB.TenPB " +
+                     "FROM NhanVien NV " +
+                     "JOIN PhongBan PB ON NV.MaPB = PB.MaPB " +
+                     "WHERE PB.TenPB LIKE ? " +
+                     "AND (NV.HoTen LIKE ? OR NV.MaNV LIKE ?) " +
+                     "AND NV.MaNV NOT IN ('admin', 'pyke1001')"; // <--- Dòng quan trọng đây
+        
         try (Connection conn = ConnectDB.getConnection();
              PreparedStatement pstm = conn.prepareStatement(sql)) {
+            
             pstm.setString(1, tenPhong.equals("Tất cả") ? "%" : "%" + tenPhong + "%");
+            
             String searchPattern = "%" + tuKhoa + "%";
             pstm.setString(2, searchPattern);
             pstm.setString(3, searchPattern);
+            
             try (ResultSet rs = pstm.executeQuery()) {
                 while (rs.next()) {
                     NhanVien nv = new NhanVien();

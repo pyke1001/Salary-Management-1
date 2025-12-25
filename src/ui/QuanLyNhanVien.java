@@ -28,7 +28,7 @@ import entity.NhanVien;
 public class QuanLyNhanVien extends AdminUI {
 	
 	Secret ui = new Secret(this);    
-    HoSoNhanVien nvUI = new HoSoNhanVien(this);
+    NhanVienUI nvUI = new NhanVienUI(this);
     HienThiCuaSo view = new HienThiCuaSo(this);
     XuLySuKien solve = new XuLySuKien(this);
     NhanVienDAO dao = new NhanVienDAO();

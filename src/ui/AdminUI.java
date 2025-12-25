@@ -207,7 +207,7 @@ public class AdminUI extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         	}
         });
-        btnSortMa.setBounds(82, 165, 100, 25);
+        btnSortMa.setBounds(82, 165, 91, 25);
         btnSortMa.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         getContentPane().add(btnSortMa);
 
@@ -216,7 +216,7 @@ public class AdminUI extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         	}
         });
-        btnSortTen.setBounds(192, 165, 100, 25);
+        btnSortTen.setBounds(183, 165, 91, 25);
         btnSortTen.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         getContentPane().add(btnSortTen);
 
@@ -225,20 +225,26 @@ public class AdminUI extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         	}
         });
-        btnSortLuong.setBounds(302, 165, 100, 25);
+        btnSortLuong.setBounds(284, 165, 91, 25);
         btnSortLuong.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         getContentPane().add(btnSortLuong);
         
         btnPhat = new JButton("⚠️ Cập nhật Phạt");                                           
-        btnPhat.setBounds(165, 570, 145, 35);                                                                                                   
+        btnPhat.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnPhat.setBounds(475, 620, 145, 35);                                                                                                   
         btnPhat.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnPhat.setBackground(new Color(233, 30, 99));
+        btnPhat.setBackground(new Color(211, 84, 0));
         btnPhat.setForeground(Color.WHITE);
         getContentPane().add(btnPhat);                      
         
         btnTangLuong = new JButton("💰 Tăng Lương");
         btnTangLuong.setFont(new Font("Dialog", Font.BOLD, 12));
         btnTangLuong.setBounds(320, 570, 145, 35);
+        btnTangLuong.setBackground(new Color(46, 204, 113));
+        btnTangLuong.setForeground(Color.WHITE);
         getContentPane().add(btnTangLuong);
         
         btnGiamLuong = new JButton("💸 Giảm Lương");
@@ -246,19 +252,23 @@ public class AdminUI extends JFrame {
             public void actionPerformed(ActionEvent e) {}
         });
         btnGiamLuong.setFont(new Font("Dialog", Font.BOLD, 12));
+        btnGiamLuong.setBackground(new Color(230, 126, 34));
         btnGiamLuong.setBounds(475, 570, 145, 35); 
+        btnGiamLuong.setForeground(Color.WHITE);
         getContentPane().add(btnGiamLuong);
         
         btnMoTinhLuong = new JButton("💰 Phiếu Lương");
         btnMoTinhLuong.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnMoTinhLuong.setBounds(630, 570, 145, 35); 
-        btnMoTinhLuong.setBackground(new Color(156, 39, 176));
+        btnMoTinhLuong.setBounds(165, 570, 145, 35); 
+        btnMoTinhLuong.setBackground(new Color(155, 89, 182));
         btnMoTinhLuong.setForeground(Color.WHITE);
         getContentPane().add(btnMoTinhLuong);
         
         btnThongKe = new JButton("📊 Thống Kê");
-        btnThongKe.setBounds(320, 620, 145, 35); 
-        btnThongKe.setFont(new Font("Dialog", Font.BOLD, 12));  
+        btnThongKe.setBounds(10, 570, 145, 35); 
+        btnThongKe.setFont(new Font("Dialog", Font.BOLD, 12));
+        btnThongKe.setBackground(new Color(52, 73, 94));
+        btnThongKe.setForeground(Color.WHITE);
         getContentPane().add(btnThongKe);
         
         btnQuanLyTK = new JButton("🔐 Quản lý TK");
@@ -267,12 +277,12 @@ public class AdminUI extends JFrame {
         });
         btnQuanLyTK.setBounds(10, 620, 145, 35);
         btnQuanLyTK.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnQuanLyTK.setBackground(Color.PINK);
+        btnQuanLyTK.setBackground(new Color(149, 165, 166));
         btnQuanLyTK.setVisible(false);
         getContentPane().add(btnQuanLyTK);
 
         btnLoad = new JButton("📂 Tải danh sách");
-        btnLoad.setBounds(800, 165, 175, 25);
+        btnLoad.setBounds(844, 165, 131, 25);
         btnLoad.setFont(new Font("Dialog", Font.BOLD, 12));
         getContentPane().add(btnLoad);
         
@@ -281,14 +291,15 @@ public class AdminUI extends JFrame {
             public void actionPerformed(ActionEvent e) {}
         });
         btnBaoLoi.setFont(new Font("Dialog", Font.BOLD, 12));
+        btnBaoLoi.setBackground(new Color(240, 240, 240));
         btnBaoLoi.setForeground(Color.RED);
         btnBaoLoi.setBounds(830, 620, 145, 35); 
         getContentPane().add(btnBaoLoi);
         
         btnChotThang = new JButton("🔄 Chốt Tháng");
         btnChotThang.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnChotThang.setBackground(new Color(255, 99, 71));
-        btnChotThang.setBounds(165, 620, 145, 35);
+        btnChotThang.setBackground(new Color(192, 57, 43)); 
+        btnChotThang.setBounds(165, 620, 145, 35); 
         btnChotThang.setForeground(Color.WHITE);
         getContentPane().add(btnChotThang);
 
@@ -297,8 +308,8 @@ public class AdminUI extends JFrame {
             public void actionPerformed(ActionEvent e) {}
         });
         btnXuatExcel.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnXuatExcel.setBackground(new Color(60, 179, 113));
-        btnXuatExcel.setBounds(475, 620, 145, 35);
+        btnXuatExcel.setBackground(new Color(33, 115, 70));
+        btnXuatExcel.setBounds(830, 570, 145, 35);
         btnXuatExcel.setForeground(Color.WHITE);
         getContentPane().add(btnXuatExcel);
             
@@ -307,14 +318,15 @@ public class AdminUI extends JFrame {
             public void actionPerformed(ActionEvent e) {}
         });
         btnThuongNong.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnThuongNong.setBounds(10, 570, 145, 35);
-        btnThuongNong.setBackground(new Color(255, 152, 0));
+        btnThuongNong.setBounds(320, 620, 145, 35);
+        btnThuongNong.setBackground(new Color(39, 174, 96));
+        btnThuongNong.setForeground(Color.WHITE);
         getContentPane().add(btnThuongNong);
         
         btnLichSu = new JButton("🕒 Lịch Sử");
         btnLichSu.setBounds(630, 620, 145, 35); // Đặt cạnh nút Xuất Excel hoặc chỗ nào trống
         btnLichSu.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnLichSu.setBackground(new Color(100, 181, 246)); // Màu xanh dương nhạt
+        btnLichSu.setBackground(new Color(96, 125, 139));
         btnLichSu.setForeground(Color.WHITE);
         getContentPane().add(btnLichSu);
         
@@ -323,16 +335,19 @@ public class AdminUI extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         	}
         });
-        btnKhoiPhuc.setBounds(830, 572, 145, 35);
-        btnKhoiPhuc.setBackground(new Color(46, 204, 113));
-        btnKhoiPhuc.setForeground(Color.WHITE);
+        btnKhoiPhuc.setBounds(630, 570, 145, 35);
+        btnKhoiPhuc.setBackground(new Color(236, 240, 241));
         btnKhoiPhuc.setFont(new Font("Dialog", Font.BOLD, 12));
         getContentPane().add(btnKhoiPhuc);
         
         btnPhatLuong = new JButton("📩 Phát Lương");
-        btnPhatLuong.setBounds(450, 165, 140, 25); 
+        btnPhatLuong.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnPhatLuong.setBounds(555, 165, 124, 25); 
         btnPhatLuong.setFont(new Font("Dialog", Font.BOLD, 12));
-        btnPhatLuong.setBackground(new Color(155, 89, 182)); 
+        btnPhatLuong.setBackground(new Color(102, 51, 153));
         btnPhatLuong.setForeground(Color.WHITE);
         getContentPane().add(btnPhatLuong);
         // ------------------------
@@ -368,7 +383,11 @@ public class AdminUI extends JFrame {
         getContentPane().add(sp);
         
         btnChamCongLe = new JButton("🎁 Chấm Công Lễ");
-        btnChamCongLe.setBounds(615, 165, 175, 25);
+        btnChamCongLe.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnChamCongLe.setBounds(689, 165, 145, 25);
         getContentPane().add(btnChamCongLe);
         btnChamCongLe.setBackground(new Color(255, 215, 0));
         btnChamCongLe.setFont(new Font("Dialog", Font.BOLD, 12));

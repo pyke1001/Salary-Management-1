@@ -21,11 +21,11 @@ import javax.swing.table.DefaultTableModel;
 
 import entity.NhanVien;
 
-public class HoSoNhanVien {
+public class NhanVienUI {
     
     private QuanLyNhanVien nvUI;
     
-    public HoSoNhanVien(QuanLyNhanVien nvUI) {
+    public NhanVienUI(QuanLyNhanVien nvUI) {
         this.nvUI = nvUI;
     }
     
