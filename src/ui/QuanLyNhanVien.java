@@ -112,7 +112,7 @@ public class QuanLyNhanVien extends AdminUI {
                     }
                 }
             });
-            btnChotThang.addActionListener(e -> solve.xuLyChotThang());
+            btnChotThang.addActionListener(e -> solve.chotSoVaLuuTruThangNay());
             btnXuatExcel.addActionListener(e -> solve.xuLyXuatExcel()); 
             return;
         }

@@ -173,6 +173,8 @@ public class XuLySuKien {
         }
     }
 
+    // Trong file XuLySuKien.java
+
     public void xuLyThuongToanCongTy() {
         Object[] info = nhapThongTinThuong();
         if (info == null) return;
@@ -180,7 +182,8 @@ public class XuLySuKien {
         String lyDo = (String) info[0];
         long tien = (long) info[1];
 
-        if (solve.dao.congTienThuong(tien)) {
+        // [FIX] Truyền thêm lyDo vào
+        if (solve.dao.congTienThuong(tien, lyDo)) {
             solve.dao.ghiLichSu("ALL", lyDo, "Mức thưởng: " + String.format("%,d", tien), solve.taiKhoanHienTai);
             JOptionPane.showMessageDialog(solve, "✅ Đã chi thưởng cho TOÀN CÔNG TY!");
             solve.loadData("NV.MaNV ASC");
@@ -190,25 +193,47 @@ public class XuLySuKien {
     }
 
     public void xuLyThuongPhongBan() {
-        // Lấy danh sách phòng
+        // 1. Lấy danh sách các phòng ban hiện có trên bảng để cho người dùng chọn
         java.util.Set<String> danhSachPhong = new java.util.HashSet<>();
-        for (int i = 0; i < solve.table.getRowCount(); i++) danhSachPhong.add(solve.table.getValueAt(i, 2).toString());
-        if (danhSachPhong.isEmpty()) { JOptionPane.showMessageDialog(solve, "Danh sách trống!"); return; }
+        for (int i = 0; i < solve.table.getRowCount(); i++) {
+            danhSachPhong.add(solve.table.getValueAt(i, 2).toString());
+        }
+        
+        if (danhSachPhong.isEmpty()) { 
+            JOptionPane.showMessageDialog(solve, "Danh sách trống!"); 
+            return; 
+        }
         
         String[] cacPhong = danhSachPhong.toArray(new String[0]);
-        String phongDuocChon = (String) JOptionPane.showInputDialog(solve, "Chọn phòng ban:", "Danh Sách Phòng", JOptionPane.QUESTION_MESSAGE, null, cacPhong, cacPhong[0]);
-        if (phongDuocChon == null) return;
+        
+        // --- ĐÂY LÀ CHỖ KHAI BÁO BIẾN CẬU ĐANG TÌM ---
+        String phongDuocChon = (String) JOptionPane.showInputDialog(
+            solve, 
+            "Chọn phòng ban cần thưởng:", 
+            "Danh Sách Phòng", 
+            JOptionPane.QUESTION_MESSAGE, 
+            null, 
+            cacPhong, 
+            cacPhong[0]
+        );
+        // ----------------------------------------------
 
+        if (phongDuocChon == null) return; // Nếu bấm Cancel thì thoát
+
+        // 2. Nhập thông tin tiền và lý do
         Object[] info = nhapThongTinThuong();
         if (info == null) return;
 
         String lyDo = (String) info[0];
         long tien = (long) info[1];
 
-        if (solve.dao.congTienThuongTheoPhong(phongDuocChon, tien)) {
+        // 3. Gọi DAO để xử lý
+        if (solve.dao.congTienThuongTheoPhong(phongDuocChon, tien, lyDo)) {
             solve.dao.ghiLichSu("DEPT", lyDo, "Phòng: " + phongDuocChon + " - Tiền: " + String.format("%,d", tien), solve.taiKhoanHienTai);     
             JOptionPane.showMessageDialog(solve, "✅ Đã chi thưởng cho phòng " + phongDuocChon.toUpperCase() + "!");
             solve.loadData("NV.MaNV ASC");
+        } else {
+            JOptionPane.showMessageDialog(solve, "❌ Lỗi hệ thống khi cộng tiền!");
         }
     }
 
@@ -217,14 +242,17 @@ public class XuLySuKien {
             long tien = Long.parseLong(sTien.replaceAll("[^0-9]", ""));
             if (tien <= 0) { JOptionPane.showMessageDialog(solve, "Số tiền thưởng phải lớn hơn 0!"); return; }
 
-            // Thưởng tiền
-            solve.dao.congTienThuongCaNhan(maNV, tien);
-            
-            // [QUAN TRỌNG] Ghi lịch sử để sau này còn tra cứu
-            solve.dao.ghiLichSu(maNV, "Thưởng Nóng Cá Nhân", "Số tiền: " + String.format("%,d", tien), solve.taiKhoanHienTai);
+            // [MỚI] Hỏi lý do thưởng cá nhân
+            String lyDo = JOptionPane.showInputDialog(solve, "Nhập lý do thưởng cho " + tenNV + ":", "Thưởng Nóng", JOptionPane.QUESTION_MESSAGE);
+            if (lyDo == null || lyDo.trim().isEmpty()) lyDo = "Thưởng đột xuất";
 
-            JOptionPane.showMessageDialog(solve, "✅ Đã thưởng nóng " + String.format("%,d", tien) + " VNĐ cho nhân viên " + tenNV);
-            solve.loadData("NV.MaNV ASC"); // Sửa lại NV.MaNV cho chuẩn SQL
+            // [FIX] Truyền thêm lyDo vào
+            solve.dao.congTienThuongCaNhan(maNV, tien, lyDo);
+            
+            solve.dao.ghiLichSu(maNV, "Thưởng Cá Nhân", lyDo + " - Tiền: " + String.format("%,d", tien), solve.taiKhoanHienTai);
+
+            JOptionPane.showMessageDialog(solve, "✅ Đã thưởng nóng cho " + tenNV);
+            solve.loadData("NV.MaNV ASC"); 
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(solve, "Vui lòng nhập số tiền hợp lệ!");
@@ -468,63 +496,81 @@ public class XuLySuKien {
     }
     
 	public void chotSoVaLuuTruThangNay() {
-	    int thangHienTai = LocalDate.now().getMonthValue();
-	    int namHienTai = LocalDate.now().getYear();
-	
-	    // 1. Hỏi xác nhận
-	    int confirm = JOptionPane.showConfirmDialog(solve, 
-	        "XÁC NHẬN CHỐT LƯƠNG THÁNG " + thangHienTai + "/" + namHienTai + "?\n\n" +
-	        "⚠️ Lưu ý: Dữ liệu thưởng/phạt hiện tại sẽ được lưu vào lịch sử\n" +
-	        "và sau đó sẽ được RESET về 0 cho tháng mới.",
-	        "Chốt Sổ", JOptionPane.YES_NO_OPTION);
-	
-	    if (confirm != JOptionPane.YES_OPTION) return;
-	
-	    try {
-	        java.sql.Connection conn = database.ConnectDB.getConnection();
-	        
-	        // [FIX] Bỏ setAutoCommit(false) để tránh lỗi quên commit
-	        
-	        // 2. Kiểm tra xem bảng Lịch Sử có tồn tại chưa, nếu chưa thì báo lỗi ngay
-	        try {
-	            java.sql.Statement checkStmt = conn.createStatement();
-	            checkStmt.executeQuery("SELECT 1 FROM BangLuongLuuTru WHERE 1=0");
-	            checkStmt.close();
-	        } catch (Exception ex) {
-	            JOptionPane.showMessageDialog(solve, "❌ LỖI: Bảng 'BangLuongLuuTru' chưa được tạo trong CSDL!\nVui lòng chạy lệnh SQL tạo bảng trước.");
-	            return;
-	        }
-	
-	        // 3. Thực hiện Lưu Trữ (INSERT)
-	        String sqlArchive = "INSERT INTO BangLuongLuuTru (MaNV, HoTen, Thang, Nam, LuongCung, TienThuong, TienPhat, ThucLinh, LyDoGhiChu) " +
-	                            "SELECT MaNV, HoTen, ?, ?, LuongCoBan, TienThuong, TienPhat, ThucLinh, LyDoThuongPhat FROM NhanVien";
-	        
-	        PreparedStatement psArchive = conn.prepareStatement(sqlArchive);
-	        psArchive.setInt(1, thangHienTai);
-	        psArchive.setInt(2, namHienTai);
-	        int rowsSaved = psArchive.executeUpdate();
-	        psArchive.close();
-	
-	        // 4. Nếu lưu thành công thì mới Reset
-	        if (rowsSaved > 0) {
-	            String sqlReset = "UPDATE NhanVien SET TienThuong = 0, TienPhat = 0, GioTangCa = 0, HeSoTangCa = 1.5, LyDoThuongPhat = N''";
-	            PreparedStatement psReset = conn.prepareStatement(sqlReset);
-	            psReset.executeUpdate();
-	            psReset.close();
-	            
-	            JOptionPane.showMessageDialog(solve, "✅ THÀNH CÔNG!\nĐã lưu trữ " + rowsSaved + " hồ sơ lương tháng " + thangHienTai + ".");
-	            
-	            // Refresh lại giao diện
-	            solve.loadData("NV.MaNV ASC");
-	        } else {
-	            JOptionPane.showMessageDialog(solve, "⚠️ CẢNH BÁO: Không có nhân viên nào để lưu trữ!");
-	        }
-	        
-	        conn.close();
-	
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        JOptionPane.showMessageDialog(solve, "❌ Lỗi Chốt Sổ: " + e.getMessage());
-	    }
-	}
+        // 1. Tạo danh sách tháng để chọn (Mặc định chọn tháng hiện tại)
+        int currentMonth = LocalDate.now().getMonthValue();
+        int currentYear = LocalDate.now().getYear();
+        
+        // Tạo option cho 3 tháng gần nhất (để lỡ có chốt bù)
+        String[] months = {
+            "Tháng " + currentMonth + "/" + currentYear,
+            "Tháng " + (currentMonth == 1 ? 12 : currentMonth - 1) + "/" + (currentMonth == 1 ? currentYear - 1 : currentYear),
+            "Tháng " + (currentMonth <= 2 ? 10 + currentMonth : currentMonth - 2) + "/" + (currentMonth <= 2 ? currentYear - 1 : currentYear)
+        };
+
+        String selectedMonthStr = (String) JOptionPane.showInputDialog(solve, 
+            "Chọn kỳ lương muốn chốt sổ và lưu trữ:", 
+            "Xác Nhận Chốt Sổ", 
+            JOptionPane.QUESTION_MESSAGE, 
+            null, 
+            months, 
+            months[0]); // Mặc định chọn tháng hiện tại
+
+        if (selectedMonthStr == null) return; // Nếu bấm Cancel thì thôi
+
+        // Parse lại tháng năm từ chuỗi vừa chọn
+        String[] parts = selectedMonthStr.replace("Tháng ", "").split("/");
+        int thangChot = Integer.parseInt(parts[0]);
+        int namChot = Integer.parseInt(parts[1]);
+
+        // 2. Hỏi xác nhận lần cuối
+        int confirm = JOptionPane.showConfirmDialog(solve, 
+            "XÁC NHẬN CHỐT LƯƠNG " + selectedMonthStr + "?\n\n" +
+            "⚠️ Dữ liệu sẽ được lưu vào lịch sử và reset bảng lương về 0.",
+            "Cảnh Báo", JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            java.sql.Connection conn = database.ConnectDB.getConnection();
+            
+            // 3. Kiểm tra xem tháng này đã chốt chưa (Tránh lưu trùng)
+            String sqlCheck = "SELECT COUNT(*) FROM BangLuongLuuTru WHERE Thang = ? AND Nam = ?";
+            PreparedStatement psCheck = conn.prepareStatement(sqlCheck);
+            psCheck.setInt(1, thangChot);
+            psCheck.setInt(2, namChot);
+            ResultSet rsCheck = psCheck.executeQuery();
+            if (rsCheck.next() && rsCheck.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(solve, "❌ Lương tháng " + thangChot + "/" + namChot + " ĐÃ ĐƯỢC CHỐT trước đó rồi!", "Trùng Dữ Liệu", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 4. Thực hiện Lưu Trữ (INSERT)
+            String sqlArchive = "INSERT INTO BangLuongLuuTru (MaNV, HoTen, Thang, Nam, LuongCung, TienThuong, TienPhat, ThucLinh, LyDoGhiChu) " +
+                                "SELECT MaNV, HoTen, ?, ?, LuongCoBan, TienThuong, TienPhat, ThucLinh, LyDoThuongPhat FROM NhanVien";
+            
+            PreparedStatement psArchive = conn.prepareStatement(sqlArchive);
+            psArchive.setInt(1, thangChot);
+            psArchive.setInt(2, namChot);
+            int rowsSaved = psArchive.executeUpdate();
+            psArchive.close();
+
+            // 5. Reset dữ liệu
+            if (rowsSaved > 0) {
+                String sqlReset = "UPDATE NhanVien SET TienThuong = 0, TienPhat = 0, GioTangCa = 0, HeSoTangCa = 1.5, ThucLinh = 0, LyDoThuongPhat = N''";
+                PreparedStatement psReset = conn.prepareStatement(sqlReset);
+                psReset.executeUpdate();
+                psReset.close();
+                
+                JOptionPane.showMessageDialog(solve, "✅ THÀNH CÔNG!\nĐã lưu trữ hồ sơ lương " + selectedMonthStr + ".");
+                solve.loadData("NV.MaNV ASC");
+            } else {
+                JOptionPane.showMessageDialog(solve, "⚠️ Không có dữ liệu nhân viên để lưu!");
+            }
+            conn.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(solve, "❌ Lỗi Chốt Sổ: " + e.getMessage());
+        }
+    }
 }

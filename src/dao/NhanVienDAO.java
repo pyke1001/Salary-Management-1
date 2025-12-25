@@ -400,15 +400,18 @@ public class NhanVienDAO {
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
     
-    public boolean congTienThuong(long soTien) {
-        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ?";
+    public boolean congTienThuong(long soTien, String lyDo) {
+        // Dùng COALESCE để nối chuỗi (Support cả SQL Server và SQLite)
+        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ?, " +
+                     "LyDoThuongPhat = COALESCE(LyDoThuongPhat, '') + ? + '; '";
         try (Connection conn = ConnectDB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, soTien);
+            stmt.setString(2, lyDo); // Lưu lý do vào
             return stmt.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
-
+    
     public boolean resetThangMoi() {
         String sql = "UPDATE NhanVien SET SoNgayDiTre = 0, TienPhat = 0, TienThuong = 0";
         try (Connection conn = ConnectDB.getConnection();
@@ -417,22 +420,28 @@ public class NhanVienDAO {
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
     
-    public boolean congTienThuongTheoPhong(String tenPhong, long soTien) {
-        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ? WHERE MaPB IN (SELECT MaPB FROM PhongBan WHERE TenPB = ?)";
+    public boolean congTienThuongTheoPhong(String tenPhong, long soTien, String lyDo) {
+        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ?, " +
+                     "LyDoThuongPhat = COALESCE(LyDoThuongPhat, '') + ? + '; ' " +
+                     "WHERE MaPB IN (SELECT MaPB FROM PhongBan WHERE TenPB = ?)";
         try (Connection conn = ConnectDB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, soTien);
-            stmt.setString(2, tenPhong);
+            stmt.setString(2, lyDo); // Lưu lý do vào
+            stmt.setString(3, tenPhong);
             return stmt.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
 
-    public void congTienThuongCaNhan(String maNV, long soTien) {
-        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ? WHERE MaNV = ?";
+    public void congTienThuongCaNhan(String maNV, long soTien, String lyDo) {
+        String sql = "UPDATE NhanVien SET TienThuong = TienThuong + ?, " +
+                     "LyDoThuongPhat = COALESCE(LyDoThuongPhat, '') + ? + '; ' " +
+                     "WHERE MaNV = ?";
         try (java.sql.Connection conn = database.ConnectDB.getConnection();
              java.sql.PreparedStatement pstm = conn.prepareStatement(sql)) {
             pstm.setLong(1, soTien);
-            pstm.setString(2, maNV);
+            pstm.setString(2, lyDo); // Lưu lý do vào
+            pstm.setString(3, maNV);
             pstm.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

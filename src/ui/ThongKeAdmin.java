@@ -205,19 +205,27 @@ public class ThongKeAdmin extends JFrame {
         pnl.add(pnlCharts, BorderLayout.SOUTH); // Biểu đồ nằm đáy
         
         return pnl;
+    
     }
-
     private JPanel taoPanelKhenThuong() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
         pnl.setBackground(Color.WHITE);
 
-        String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban", "Nội Dung", "Số Tiền (VNĐ)"};
-        DefaultTableModel modelThuong = new DefaultTableModel(cols, 0);
+        String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban", "Nội Dung Khen Thưởng", "Số Tiền (VNĐ)"};
+        
+        // [FIX 2] Cấu hình bảng: Chỉ cho phép sửa cột 3 (Nội Dung)
+        DefaultTableModel modelThuong = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 3; // Chỉ cột "Nội Dung" (Index 3) trả về True
+            }
+        };
+        
         JTable tblThuong = new JTable(modelThuong);
         styleTable(tblThuong);
         
-        // Render màu xanh cho tiền thưởng
+        // Render màu xanh cho cột Tiền
         tblThuong.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public void setValue(Object value) {
@@ -227,14 +235,31 @@ public class ThongKeAdmin extends JFrame {
             }
         });
         
-        tblThuong.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                // Chỉ xử lý khi click chuột
-                int row = tblThuong.getSelectedRow();
-                if (row != -1) {
-                    String maNV = tblThuong.getValueAt(row, 0).toString(); // Giả sử cột 0 là Mã NV
-                    hienThiChiTietLyDo(maNV);
+        // Độ rộng cột
+        tblThuong.getColumnModel().getColumn(3).setPreferredWidth(300);
+
+        // [TÍNH NĂNG MỚI] Lắng nghe sự kiện sửa đổi để lưu vào Database ngay lập tức
+        modelThuong.addTableModelListener(e -> {
+            if (e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
+                int row = e.getFirstRow();
+                int col = e.getColumn();
+                if (col == 3 && row >= 0) { // Nếu sửa cột Nội Dung
+                    String maNV = modelThuong.getValueAt(row, 0).toString();
+                    String lyDoMoi = modelThuong.getValueAt(row, 3).toString();
+                    
+                    try {
+                        java.sql.Connection conn = database.ConnectDB.getConnection();
+                        String sqlUpdate = "UPDATE NhanVien SET LyDoThuongPhat = ? WHERE MaNV = ?";
+                        java.sql.PreparedStatement ps = conn.prepareStatement(sqlUpdate);
+                        ps.setString(1, lyDoMoi);
+                        ps.setString(2, maNV);
+                        ps.executeUpdate();
+                        conn.close();
+                        // Không cần hiện thông báo để trải nghiệm mượt mà (Silent Save)
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + ex.getMessage());
+                    }
                 }
             }
         });
@@ -242,27 +267,48 @@ public class ThongKeAdmin extends JFrame {
         long tongTienThuong = 0;
         int countThuong = 0;
 
-        for (int i = 0; i < mainModel.getRowCount(); i++) {
-            String thuongStr = mainModel.getValueAt(i, 6).toString().replace(",", ""); // Cột 6: Thưởng
-            long thuong = 0;
-            try { thuong = Long.parseLong(thuongStr); } catch (Exception e) {}
+        try {
+            java.sql.Connection conn = database.ConnectDB.getConnection();
+            
+            // [FIX 1] Thêm điều kiện ẩn Admin và Pyke1001
+            String sql = "SELECT NV.MaNV, NV.HoTen, PB.TenPB, NV.TienThuong, NV.LyDoThuongPhat " +
+                         "FROM NhanVien NV " +
+                         "JOIN PhongBan PB ON NV.MaPB = PB.MaPB " +
+                         "WHERE NV.TienThuong > 0 " +
+                         "AND NV.MaNV NOT IN ('admin', 'pyke1001')"; // <--- Dòng lọc quan trọng
+            
+            java.sql.Statement stmt = conn.createStatement();
+            java.sql.ResultSet rs = stmt.executeQuery(sql);
+            
+            while (rs.next()) {
+                long tien = rs.getLong("TienThuong");
+                String lyDo = rs.getString("LyDoThuongPhat");
+                
+                if (lyDo == null || lyDo.trim().isEmpty()) {
+                    lyDo = "Thưởng hiệu suất"; 
+                } else {
+                    if (lyDo.endsWith("; ")) lyDo = lyDo.substring(0, lyDo.length() - 2);
+                }
 
-            if (thuong > 0) {
                 modelThuong.addRow(new Object[]{
-                    mainModel.getValueAt(i, 0),
-                    mainModel.getValueAt(i, 1),
-                    mainModel.getValueAt(i, 2),
-                    "Thưởng KPI / Doanh số", 
-                    String.format("%,d", thuong)
+                    rs.getString("MaNV"),
+                    rs.getString("HoTen"),
+                    rs.getString("TenPB"),
+                    lyDo, 
+                    String.format("%,d", tien)
                 });
-                tongTienThuong += thuong;
+                
+                tongTienThuong += tien;
                 countThuong++;
             }
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         // Panel Info Header
         JPanel pnlInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        pnlInfo.setBackground(new Color(235, 250, 235)); // Xanh nhạt
+        pnlInfo.setBackground(new Color(235, 250, 235));
         pnlInfo.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COL_SUCCESS));
         
         JLabel lblCount = new JLabel("Nhân sự được thưởng: " + countThuong);
@@ -278,9 +324,16 @@ public class ThongKeAdmin extends JFrame {
 
         pnl.add(pnlInfo, BorderLayout.NORTH);
         pnl.add(new JScrollPane(tblThuong), BorderLayout.CENTER);
+        
+        // Thêm ghi chú nhỏ bên dưới để người dùng biết là sửa được
+        JLabel lblHint = new JLabel("💡 Mẹo: Nhấp đôi vào cột 'Nội Dung' để chỉnh sửa lý do thưởng. Các cột khác đã bị khóa.", JLabel.CENTER);
+        lblHint.setForeground(Color.GRAY);
+        lblHint.setBorder(new EmptyBorder(5,0,5,0));
+        pnl.add(lblHint, BorderLayout.SOUTH);
+        
         return pnl;
     }
-
+    
     private JPanel taoPanelViPham() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -789,95 +842,122 @@ public class ThongKeAdmin extends JFrame {
 
         return p;
     }
-    
-    private void hienThiChiTietLyDo(String maNV) {
-    try {
-        java.sql.Connection conn = database.ConnectDB.getConnection();
-        String sql = "SELECT HoTen, TienThuong, TienPhat, LyDoThuongPhat FROM NhanVien WHERE MaNV = ?";
-        java.sql.PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, maNV);
-        java.sql.ResultSet rs = ps.executeQuery();
-        
-        if (rs.next()) {
-            String hoTen = rs.getString("HoTen");
-            long thuong = rs.getLong("TienThuong");
-            // long phat = rs.getLong("TienPhat"); // <-- Vẫn giữ biến này để sau này dùng
-            String lyDo = rs.getString("LyDoThuongPhat");
-            
-            if (lyDo == null || lyDo.isEmpty()) lyDo = "Không có ghi chú.";
-            
-            // Chỉ hiển thị Thưởng và Lý do chung
-            String msg = "Nhân viên: " + hoTen + "\n" +
-                         "--------------------------------\n" +
-                         "💰 Tiền Thưởng: " + String.format("%,d", thuong) + " VNĐ\n" +
-                         // "💸 Tiền Phạt:   " + String.format("%,d", phat) + " VNĐ\n" + // <-- Đã ẩn dòng này
-                         "--------------------------------\n" +
-                         "📝 GHI CHÚ / LÝ DO:\n" + lyDo;
-                         
-            javax.swing.JOptionPane.showMessageDialog(this, msg, "Chi tiết Thu nhập", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-        }
-        conn.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    }
 
-	private void hienThiCuaSoLichSu() {
-	    JDialog dialog = new JDialog(this, "Lịch Sử Lương Đã Chốt", true);
-	    dialog.setSize(950, 600);
-	    dialog.setLocationRelativeTo(this);
-	    dialog.setLayout(new BorderLayout());
-	
-	    String[] columns = {"Thời Gian", "Mã NV", "Họ Tên", "Lương Cứng", "Thưởng", "Thực Lĩnh", "Ghi Chú"};
-	    DefaultTableModel modelLS = new DefaultTableModel(columns, 0);
-	    JTable tableLS = new JTable(modelLS);
-	    tableLS.setRowHeight(25);
-	    tableLS.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-	    
-	    // Thêm cột Header màu mè tí cho đẹp
-	    tableLS.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-	    tableLS.getTableHeader().setBackground(new Color(255, 193, 7));
-	
-	    try {
-	        java.sql.Connection conn = database.ConnectDB.getConnection();
-	        String sql = "SELECT * FROM BangLuongLuuTru ORDER BY Nam DESC, Thang DESC, MaNV ASC";
-	        java.sql.PreparedStatement ps = conn.prepareStatement(sql);
-	        java.sql.ResultSet rs = ps.executeQuery();
-	        
-	        int count = 0;
-	        while (rs.next()) {
-	            count++;
-	            String time = rs.getInt("Thang") + "/" + rs.getInt("Nam");
-	            
-	            // Xử lý null an toàn
-	            long luongCung = rs.getObject("LuongCung") != null ? rs.getLong("LuongCung") : 0;
-	            long thuong = rs.getObject("TienThuong") != null ? rs.getLong("TienThuong") : 0;
-	            long thucLinh = rs.getObject("ThucLinh") != null ? rs.getLong("ThucLinh") : 0;
-	            String ghiChu = rs.getString("LyDoGhiChu");
-	            if (ghiChu == null) ghiChu = "";
-	
-	            modelLS.addRow(new Object[]{
-	                time,
-	                rs.getString("MaNV"),
-	                rs.getString("HoTen"),
-	                String.format("%,d", luongCung),
-	                String.format("%,d", thuong),
-	                String.format("%,d", thucLinh),
-	                ghiChu
-	            });
-	        }
-	        
-	        if (count == 0) {
-	            modelLS.addRow(new Object[]{"(Trống)", "-", "Chưa có dữ liệu lịch sử", "-", "-", "-", "-"});
-	        }
-	        
-	        conn.close();
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        JOptionPane.showMessageDialog(dialog, "Lỗi tải lịch sử: " + e.getMessage());
-	    }
-	
-	    dialog.add(new JScrollPane(tableLS), BorderLayout.CENTER);
-	    dialog.setVisible(true);
-	}
+    private void hienThiCuaSoLichSu() {
+        JDialog dialog = new JDialog(this, "Kho Lưu Trữ Khen Thưởng & Lương Tháng", true);
+        dialog.setSize(1000, 600);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        // --- 1. PANEL BỘ LỌC (NORTH) ---
+        JPanel pnlFilter = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pnlFilter.setBackground(new Color(240, 240, 240));
+        pnlFilter.setBorder(new EmptyBorder(10, 20, 10, 20));
+
+        JLabel lblChon = new JLabel("Chọn Kỳ Lương:");
+        lblChon.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        
+        javax.swing.JComboBox<String> cboThang = new javax.swing.JComboBox<>();
+        cboThang.setPreferredSize(new Dimension(200, 30));
+        
+        JButton btnXem = new JButton("Xem Danh Sách");
+        btnXem.setBackground(COL_PRIMARY);
+        btnXem.setForeground(Color.WHITE);
+        btnXem.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        pnlFilter.add(lblChon);
+        pnlFilter.add(cboThang);
+        pnlFilter.add(btnXem);
+        
+        dialog.add(pnlFilter, BorderLayout.NORTH);
+
+        // --- 2. BẢNG DỮ LIỆU (CENTER) ---
+        String[] columns = {"Mã NV", "Họ Tên", "Lương Cứng", "Tiền Thưởng (VNĐ)", "Tiền Phạt", "Thực Lĩnh", "Ghi Chú"};
+        DefaultTableModel modelLS = new DefaultTableModel(columns, 0);
+        JTable tableLS = new JTable(modelLS);
+        
+        // Style bảng
+        tableLS.setRowHeight(30);
+        tableLS.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tableLS.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tableLS.getTableHeader().setBackground(new Color(255, 193, 7)); // Màu vàng Archive
+        
+        // Highlight cột TIỀN THƯỞNG (Cột 3) cho đúng ý cậu
+        tableLS.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public void setValue(Object value) {
+                super.setValue(value);
+                this.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                this.setForeground(new Color(40, 167, 69)); // Màu xanh lá tiền tài
+            }
+        });
+
+        dialog.add(new JScrollPane(tableLS), BorderLayout.CENTER);
+
+        // --- 3. LOGIC TẢI DỮ LIỆU ---
+        
+        // 3.1. Tải danh sách các tháng có trong DB vào ComboBox
+        try {
+            java.sql.Connection conn = database.ConnectDB.getConnection();
+            // Lấy các tháng duy nhất đã lưu
+            String sqlGetMonths = "SELECT DISTINCT Thang, Nam FROM BangLuongLuuTru ORDER BY Nam DESC, Thang DESC";
+            java.sql.Statement stmt = conn.createStatement();
+            java.sql.ResultSet rs = stmt.executeQuery(sqlGetMonths);
+            
+            cboThang.addItem("-- Chọn tháng --");
+            while (rs.next()) {
+                cboThang.addItem("Tháng " + rs.getInt("Thang") + "/" + rs.getInt("Nam"));
+            }
+            conn.close();
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // 3.2. Sự kiện bấm nút Xem
+        btnXem.addActionListener(e -> {
+            String selected = (String) cboThang.getSelectedItem();
+            if (selected == null || selected.startsWith("--")) return;
+
+            // Parse lấy tháng/năm từ chuỗi "Tháng 12/2025"
+            String[] parts = selected.replace("Tháng ", "").split("/");
+            int thang = Integer.parseInt(parts[0]);
+            int nam = Integer.parseInt(parts[1]);
+
+            modelLS.setRowCount(0); // Xóa bảng cũ
+            
+            try {
+                java.sql.Connection conn = database.ConnectDB.getConnection();
+                String sqlData = "SELECT * FROM BangLuongLuuTru WHERE Thang = ? AND Nam = ?";
+                java.sql.PreparedStatement ps = conn.prepareStatement(sqlData);
+                ps.setInt(1, thang);
+                ps.setInt(2, nam);
+                java.sql.ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    modelLS.addRow(new Object[]{
+                        rs.getString("MaNV"),
+                        rs.getString("HoTen"),
+                        String.format("%,d", rs.getLong("LuongCung")),
+                        String.format("%,d", rs.getLong("TienThuong")), // Cột này sẽ xanh
+                        String.format("%,d", rs.getLong("TienPhat")),
+                        String.format("%,d", rs.getLong("ThucLinh")),
+                        rs.getString("LyDoGhiChu")
+                    });
+                }
+                conn.close();
+                
+                if (modelLS.getRowCount() == 0) {
+                    JOptionPane.showMessageDialog(dialog, "Không tìm thấy dữ liệu cho tháng này!");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        // Tự động chọn tháng mới nhất nếu có
+        if (cboThang.getItemCount() > 1) {
+            cboThang.setSelectedIndex(1);
+            btnXem.doClick(); // Tự bấm nút xem luôn
+        }
+
+        dialog.setVisible(true);
+    }
 }
