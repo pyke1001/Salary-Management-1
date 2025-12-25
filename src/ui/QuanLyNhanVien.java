@@ -558,10 +558,10 @@ public class QuanLyNhanVien extends AdminUI {
     }   
 
     private void fillTable(List<NhanVien> list) { 
-        model.setRowCount(0);
+        model.setRowCount(0); // Xóa sạch bảng cũ
         
         for (NhanVien nv : list) {
-            // 1. Xử lý Thâm Niên
+            // 1. Tính toán Thâm Niên từ Ngày Vào Làm
             String thamNien = "Mới vào";
             if (nv.getNgayVaoLam() != null) {
                 java.time.LocalDate start = new java.util.Date(nv.getNgayVaoLam().getTime()).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
@@ -570,38 +570,34 @@ public class QuanLyNhanVien extends AdminUI {
                 if (nam > 0) thamNien = nam + " năm";
             }
 
-            // 2. [LOGIC MỚI] Xử lý Thực Lĩnh (Live Preview)
-            long thucLinhHienThi = nv.getThucLinh(); // Lấy giá trị từ Database trước
-            
+            // 2. Logic "Live Preview" Thực Lĩnh (Tính nhẩm nếu chưa chốt sổ)
+            long thucLinhHienThi = nv.getThucLinh();
             if (thucLinhHienThi == 0) {
-                // Nếu DB bằng 0 (nghĩa là chưa Chốt Lương tháng này)
-                // -> Gọi bộ xử lý Logic tính toán tạm thời để hiển thị cho đẹp
-                
-                double heSoTangCa = nv.getHeSoTangCa() == 0 ? 1.5 : nv.getHeSoTangCa(); // Mặc định 1.5 nếu chưa set
-                
-                thucLinhHienThi = logic.MayTinhLuong.tinhThucLinhFinal(
+                 // Nếu DB = 0 (chưa chốt), gọi máy tính lương ra tính tạm để hiển thị cho đẹp
+                 double heSoTangCa = nv.getHeSoTangCa() == 0 ? 1.5 : nv.getHeSoTangCa();
+                 thucLinhHienThi = logic.MayTinhLuong.tinhThucLinhFinal(
                     nv.getLuongCoBan(),
                     nv.getHeSoLuong(),
                     nv.getGioTangCa(),
                     heSoTangCa,
                     nv.getTienThuong(),
                     nv.getTienPhat(),
-                    0 // Tạm tính 0 người phụ thuộc (sau này có thể nâng cấp thêm cột này)
+                    0 // Tạm tính 0 người phụ thuộc
                 );
             }
 
-            // 3. Đổ dữ liệu vào bảng
+            // 3. Đổ dữ liệu vào đúng 10 cột
             model.addRow(new Object[] {
-                nv.getMaNV(),                                // 1. Mã
-                nv.getHoTen(),                               // 2. Tên
-                nv.getTenPB(),                               // 3. Phòng
-                String.format("%,d", nv.getLuongCoBan()),    // 4. Lương CB
-                thamNien,                                    // 5. Thâm Niên
-                nv.getHeSoLuong(),                           // 6. Hệ số
-                String.format("%,d", nv.getTienThuong()),    // 7. Thưởng
-                nv.getSoNgayDiTre() + " ngày",               // 8. Đi trễ
-                String.format("%,d", nv.getTienPhat()),      // 9. Phạt
-                String.format("%,d", thucLinhHienThi)        // 10. Thực Lĩnh (Đã có số liệu!)
+                nv.getMaNV(),                                // Cột 0: Mã
+                nv.getHoTen(),                               // Cột 1: Tên
+                nv.getTenPB(),                               // Cột 2: Phòng
+                String.format("%,d", nv.getLuongCoBan()),    // Cột 3: Lương CB
+                thamNien,                                    // Cột 4: Thâm Niên (Quan trọng)
+                nv.getHeSoLuong(),                           // Cột 5: Hệ số
+                String.format("%,d", nv.getTienThuong()),    // Cột 6: Thưởng
+                nv.getSoNgayDiTre() + " ngày",               // Cột 7: Đi trễ
+                String.format("%,d", nv.getTienPhat()),      // Cột 8: Phạt
+                String.format("%,d", thucLinhHienThi)        // Cột 9: Thực Lĩnh
             });
         }
     }

@@ -35,6 +35,7 @@ public class DangNhapUI extends JFrame {
     private static java.util.Set<String> unlockedAchievements = new java.util.HashSet<>();
     
     public DangNhapUI() {
+    	tuDongVaLoiSQLite();
         initUI();
         initEvents();
     }
@@ -325,5 +326,35 @@ public class DangNhapUI extends JFrame {
         DangNhapUI loginScreen = new DangNhapUI();
         loginScreen.setVisible(true);
         loginScreen.setLocationRelativeTo(null);
+    }
+    
+    private void tuDongVaLoiSQLite() {
+        try {
+            java.sql.Connection conn = database.ConnectDB.getConnection();
+            if (conn == null) return;
+
+            java.sql.Statement stmt = conn.createStatement();
+            
+            // Danh sách các lệnh thêm cột (Dùng try-catch riêng cho từng lệnh để lỡ có rồi thì không lỗi)
+            String[] lenhVahs = {
+                "ALTER TABLE NhanVien ADD COLUMN GioTangCa DOUBLE DEFAULT 0",
+                "ALTER TABLE NhanVien ADD COLUMN HeSoTangCa DOUBLE DEFAULT 1.5",
+                "ALTER TABLE NhanVien ADD COLUMN ThucLinh BIGINT DEFAULT 0",
+                "ALTER TABLE NhanVien ADD COLUMN LyDoThuongPhat TEXT DEFAULT ''"
+            };
+
+            for (String sql : lenhVahs) {
+                try {
+                    stmt.executeUpdate(sql);
+                    System.out.println("✅ Đã vá thành công: " + sql);
+                } catch (Exception e) {
+                    // Nếu cột đã tồn tại thì nó sẽ báo lỗi, mình cứ lờ đi
+                    // System.out.println("⚠️ Bỏ qua (đã có): " + sql);
+                }
+            }
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
