@@ -14,24 +14,25 @@ import java.sql.ResultSet;
 
 public class XuLySuKien {
   
-    private QuanLyNhanVien solve;
+    private QuanLyNhanVien controller;
 
-    public XuLySuKien(QuanLyNhanVien solve) {
-        this.solve = solve;
+    public XuLySuKien(QuanLyNhanVien controller) {
+        this.controller = controller;
     }
 
+    // Xử lý logic giảm lương nhân viên
     public void xuLyGiamLuong() {
-        int row = solve.table.getSelectedRow();
+        int row = controller.table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(solve, "Vui lòng chọn nhân viên cần giảm lương!", "Chưa chọn đối tượng", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(controller, "Vui lòng chọn nhân viên cần giảm lương!", "Chưa chọn đối tượng", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String maNV = solve.table.getValueAt(row, 0).toString();
-        String hoTen = solve.table.getValueAt(row, 1).toString();
-        float heSoCu = Float.parseFloat(solve.table.getValueAt(row, 5).toString());
+        String maNV = controller.table.getValueAt(row, 0).toString();
+        String hoTen = controller.table.getValueAt(row, 1).toString();
+        float heSoCu = Float.parseFloat(controller.table.getValueAt(row, 5).toString());
 
-        String input = JOptionPane.showInputDialog(solve, 
+        String input = JOptionPane.showInputDialog(controller, 
             "Nhập hệ số lương MỚI cho " + hoTen + ":\n(Hệ số hiện tại: " + heSoCu + ")", 
             heSoCu);
             
@@ -39,44 +40,48 @@ public class XuLySuKien {
 
         try {
             float heSoMoi = Float.parseFloat(input);
+            // Validate dữ liệu đầu vào
             if (heSoMoi <= 0) {
-                JOptionPane.showMessageDialog(solve, "Hệ số lương phải lớn hơn 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(controller, "Hệ số lương phải lớn hơn 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (heSoMoi >= heSoCu) {
-                JOptionPane.showMessageDialog(solve, "Đang giảm lương thì hệ số mới phải NHỎ HƠN hệ số cũ!", "Sai logic", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(controller, "Đang giảm lương thì hệ số mới phải NHỎ HƠN hệ số cũ!", "Sai logic", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
+            // Xác nhận hành động nhạy cảm
             String msg = String.format("XÁC NHẬN KỶ LUẬT HẠ BẬC LƯƠNG\n\nNhân viên: %s\nHệ số cũ: %.2f\nHệ số mới: <font color='red'><b>%.2f</b></font>", hoTen, heSoCu, heSoMoi);
-            int confirm = JOptionPane.showConfirmDialog(solve, "<html>" + msg + "</html>", "Phê Duyệt Kỷ Luật", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            int confirm = JOptionPane.showConfirmDialog(controller, "<html>" + msg + "</html>", "Phê Duyệt Kỷ Luật", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
             if (confirm == JOptionPane.YES_OPTION) {
-                if (solve.dao.capNhatHeSo(maNV, heSoMoi)) {
-                    solve.dao.ghiLichSu(maNV, "Hạ Bậc Lương", String.format("Hạ hệ số từ %.2f -> %.2f", heSoCu, heSoMoi), solve.taiKhoanHienTai);
-                    JOptionPane.showMessageDialog(solve, "✅ Đã cập nhật hệ số lương mới!");
-                    solve.loadData("NV.MaNV ASC");
+                if (controller.dao.capNhatHeSo(maNV, heSoMoi)) {
+                    controller.dao.ghiLichSu(maNV, "Hạ Bậc Lương", String.format("Hạ hệ số từ %.2f -> %.2f", heSoCu, heSoMoi), controller.taiKhoanHienTai);
+                    JOptionPane.showMessageDialog(controller, "✅ Đã cập nhật hệ số lương mới!");
+                    controller.loadData("NV.MaNV ASC");
                 } else {
-                    JOptionPane.showMessageDialog(solve, "❌ Lỗi kết nối CSDL!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(controller, "❌ Lỗi kết nối CSDL!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(solve, "Vui lòng nhập con số hợp lệ!");
+            JOptionPane.showMessageDialog(controller, "Vui lòng nhập con số hợp lệ!");
         }
     }
 
+    // Xử lý logic tăng lương dựa trên thuật toán thâm niên
     public void xuLyTangLuong() { 
-        int row = solve.table.getSelectedRow();
+        int row = controller.table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(solve, "Vui lòng chọn nhân viên cần xét nâng lương!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(controller, "Vui lòng chọn nhân viên cần xét nâng lương!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String maNV = solve.table.getValueAt(row, 0).toString();
-        String hoTen = solve.table.getValueAt(row, 1).toString();
-        float heSoCu = Float.parseFloat(solve.table.getValueAt(row, 5).toString());
+        String maNV = controller.table.getValueAt(row, 0).toString();
+        String hoTen = controller.table.getValueAt(row, 1).toString();
+        float heSoCu = Float.parseFloat(controller.table.getValueAt(row, 5).toString());
         
-        NhanVien nvFull = solve.dao.getNhanVienTheoMa(maNV);
+        NhanVien nvFull = controller.dao.getNhanVienTheoMa(maNV);
+        // Gọi thuật toán tính toán hệ số đề xuất
         float heSoDeXuat = ThuatToanTangLuong.deXuatHeSoMoi(nvFull.getNgayVaoLam(), heSoCu);
         
         String goiY = (heSoDeXuat > heSoCu) ? " (Đã đến hạn nâng bậc!)" : " (Chưa đến hạn)";
@@ -95,7 +100,7 @@ public class XuLySuKien {
         JComboBox<String> cboOption = new JComboBox<>(options);
         panel.add(cboOption);
 
-        int result = JOptionPane.showConfirmDialog(solve, panel, "Hội Đồng Xét Duyệt Lương", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = JOptionPane.showConfirmDialog(controller, panel, "Hội Đồng Xét Duyệt Lương", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             float heSoMoi = heSoCu;
@@ -103,77 +108,79 @@ public class XuLySuKien {
             String lyDo = "";
 
             try {
+                // Xử lý các lựa chọn tăng lương
                 if (selectedIndex == 0) { heSoMoi = heSoCu + 0.33f; lyDo = "Nâng lương thường niên"; }
                 else if (selectedIndex == 1) { heSoMoi = heSoCu + 0.66f; lyDo = "Nâng lương đặc cách"; }
                 else if (selectedIndex == 2) { heSoMoi = heSoDeXuat; lyDo = "Nâng lương theo niên hạn"; }
                 else { 
-                    String input = JOptionPane.showInputDialog(solve, "Nhập hệ số mới:", String.format("%.2f", heSoCu + 0.33));
+                    String input = JOptionPane.showInputDialog(controller, "Nhập hệ số mới:", String.format("%.2f", heSoCu + 0.33));
                     if (input == null || input.trim().isEmpty()) return;
                     heSoMoi = Float.parseFloat(input);
                     lyDo = "Điều chỉnh thủ công"; 
                 }
                 
+                // Làm tròn 2 chữ số thập phân
                 heSoMoi = (float) (Math.round(heSoMoi * 100.0) / 100.0);
-                if (heSoMoi <= heSoCu) { JOptionPane.showMessageDialog(solve, "Hệ số mới phải cao hơn hệ số cũ!"); return; }
+                if (heSoMoi <= heSoCu) { JOptionPane.showMessageDialog(controller, "Hệ số mới phải cao hơn hệ số cũ!"); return; }
 
-                if (solve.dao.capNhatHeSo(maNV, heSoMoi)) {
+                if (controller.dao.capNhatHeSo(maNV, heSoMoi)) {
                     String chiTiet = String.format("<html>- %s<br>- Hệ số: %.2f -> <font color='blue'><b>%.2f</b></font></html>", lyDo, heSoCu, heSoMoi);
-                    solve.dao.ghiLichSu(maNV, "Nâng Lương", chiTiet, solve.taiKhoanHienTai);
-                    JOptionPane.showMessageDialog(solve, "✅ Cập nhật thành công!");
-                    solve.loadData("NV.MaNV ASC");
+                    controller.dao.ghiLichSu(maNV, "Nâng Lương", chiTiet, controller.taiKhoanHienTai);
+                    JOptionPane.showMessageDialog(controller, "✅ Cập nhật thành công!");
+                    controller.loadData("NV.MaNV ASC");
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(solve, "Lỗi nhập liệu: " + ex.getMessage());
+                JOptionPane.showMessageDialog(controller, "Lỗi nhập liệu: " + ex.getMessage());
             }
         }
     }   
 
+    // Cập nhật phạt đi trễ
     public void xuLyPhat() {
-        int row = solve.table.getSelectedRow();
+        int row = controller.table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(solve, "Vui lòng chọn nhân viên cần phạt!", "Chưa chọn", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(controller, "Vui lòng chọn nhân viên cần phạt!", "Chưa chọn", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        String maNV = solve.table.getValueAt(row, 0).toString();
-        String hoTen = solve.table.getValueAt(row, 1).toString();
+        String maNV = controller.table.getValueAt(row, 0).toString();
+        String hoTen = controller.table.getValueAt(row, 1).toString();
         
-        String input = JOptionPane.showInputDialog(solve, "Nhập số ngày đi trễ của " + hoTen + ":", "Xử Lý Vi Phạm", JOptionPane.QUESTION_MESSAGE);
+        String input = JOptionPane.showInputDialog(controller, "Nhập số ngày đi trễ của " + hoTen + ":", "Xử Lý Vi Phạm", JOptionPane.QUESTION_MESSAGE);
             
         if (input != null && !input.trim().isEmpty()) {
             try {
                 int soNgay = Integer.parseInt(input.trim());
-                if (soNgay < 0) { JOptionPane.showMessageDialog(solve, "Số ngày không được âm!"); return; }
+                if (soNgay < 0) { JOptionPane.showMessageDialog(controller, "Số ngày không được âm!"); return; }
                 
-                solve.dao.capNhatPhat(maNV, soNgay); 
-                solve.dao.ghiLichSu(maNV, "Phạt đi trễ", "Số ngày trễ: " + soNgay, solve.taiKhoanHienTai);
-                JOptionPane.showMessageDialog(solve, "✅ Đã ghi nhận phạt cho: " + hoTen);
-                solve.loadData("NV.MaNV ASC");
+                controller.dao.capNhatPhat(maNV, soNgay); 
+                controller.dao.ghiLichSu(maNV, "Phạt đi trễ", "Số ngày trễ: " + soNgay, controller.taiKhoanHienTai);
+                JOptionPane.showMessageDialog(controller, "✅ Đã ghi nhận phạt cho: " + hoTen);
+                controller.loadData("NV.MaNV ASC");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(solve, "Vui lòng nhập số nguyên hợp lệ!");
+                JOptionPane.showMessageDialog(controller, "Vui lòng nhập số nguyên hợp lệ!");
             }
         }
     }
 
+    // Hàm hỗ trợ nhập liệu thưởng
     private Object[] nhapThongTinThuong() {
         String[] lyDoList = { "Thưởng Nóng (Đột xuất)", "Thưởng Quý 1", "Thưởng Quý 2", "Thưởng Quý 3", "Thưởng Quý 4", "Thưởng Hoàn Thành Dự Án", "Thưởng Sinh Nhật Công Ty" };
-        String lyDoChon = (String) JOptionPane.showInputDialog(solve, "Chọn loại hình khen thưởng:", "Danh Mục Thưởng", JOptionPane.PLAIN_MESSAGE, null, lyDoList, lyDoList[0]);
+        String lyDoChon = (String) JOptionPane.showInputDialog(controller, "Chọn loại hình khen thưởng:", "Danh Mục Thưởng", JOptionPane.PLAIN_MESSAGE, null, lyDoList, lyDoList[0]);
         if (lyDoChon == null) return null;
 
-        String moneyStr = JOptionPane.showInputDialog(solve, "Nhập số tiền thưởng (VNĐ):", "1000000");
+        String moneyStr = JOptionPane.showInputDialog(controller, "Nhập số tiền thưởng (VNĐ):", "1000000");
         if (moneyStr == null || moneyStr.trim().isEmpty()) return null;
 
         try {
             long tienThuong = Long.parseLong(moneyStr.replace(",", "").replace(".", ""));
-            if (tienThuong <= 0) { JOptionPane.showMessageDialog(solve, "Tiền thưởng phải lớn hơn 0!"); return null; }
+            if (tienThuong <= 0) { JOptionPane.showMessageDialog(controller, "Tiền thưởng phải lớn hơn 0!"); return null; }
             return new Object[]{lyDoChon, tienThuong};
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(solve, "Nhập tiền sai định dạng!");
+            JOptionPane.showMessageDialog(controller, "Nhập tiền sai định dạng!");
             return null;
         }
     }
-
-    // Trong file XuLySuKien.java
 
     public void xuLyThuongToanCongTy() {
         Object[] info = nhapThongTinThuong();
@@ -182,33 +189,30 @@ public class XuLySuKien {
         String lyDo = (String) info[0];
         long tien = (long) info[1];
 
-        // [FIX] Truyền thêm lyDo vào
-        if (solve.dao.congTienThuong(tien, lyDo)) {
-            solve.dao.ghiLichSu("ALL", lyDo, "Mức thưởng: " + String.format("%,d", tien), solve.taiKhoanHienTai);
-            JOptionPane.showMessageDialog(solve, "✅ Đã chi thưởng cho TOÀN CÔNG TY!");
-            solve.loadData("NV.MaNV ASC");
+        if (controller.dao.congTienThuong(tien, lyDo)) {
+            controller.dao.ghiLichSu("ALL", lyDo, "Mức thưởng: " + String.format("%,d", tien), controller.taiKhoanHienTai);
+            JOptionPane.showMessageDialog(controller, "✅ Đã chi thưởng cho TOÀN CÔNG TY!");
+            controller.loadData("NV.MaNV ASC");
         } else {
-            JOptionPane.showMessageDialog(solve, "❌ Lỗi kết nối!");
+            JOptionPane.showMessageDialog(controller, "❌ Lỗi kết nối!");
         }
     }
 
     public void xuLyThuongPhongBan() {
-        // 1. Lấy danh sách các phòng ban hiện có trên bảng để cho người dùng chọn
+        // Lấy danh sách các phòng ban hiện có từ Table
         java.util.Set<String> danhSachPhong = new java.util.HashSet<>();
-        for (int i = 0; i < solve.table.getRowCount(); i++) {
-            danhSachPhong.add(solve.table.getValueAt(i, 2).toString());
+        for (int i = 0; i < controller.table.getRowCount(); i++) {
+            danhSachPhong.add(controller.table.getValueAt(i, 2).toString());
         }
         
         if (danhSachPhong.isEmpty()) { 
-            JOptionPane.showMessageDialog(solve, "Danh sách trống!"); 
+            JOptionPane.showMessageDialog(controller, "Danh sách trống!"); 
             return; 
         }
         
         String[] cacPhong = danhSachPhong.toArray(new String[0]);
-        
-        // --- ĐÂY LÀ CHỖ KHAI BÁO BIẾN CẬU ĐANG TÌM ---
         String phongDuocChon = (String) JOptionPane.showInputDialog(
-            solve, 
+            controller, 
             "Chọn phòng ban cần thưởng:", 
             "Danh Sách Phòng", 
             JOptionPane.QUESTION_MESSAGE, 
@@ -216,67 +220,62 @@ public class XuLySuKien {
             cacPhong, 
             cacPhong[0]
         );
-        // ----------------------------------------------
 
-        if (phongDuocChon == null) return; // Nếu bấm Cancel thì thoát
+        if (phongDuocChon == null) return;
 
-        // 2. Nhập thông tin tiền và lý do
         Object[] info = nhapThongTinThuong();
         if (info == null) return;
 
         String lyDo = (String) info[0];
         long tien = (long) info[1];
 
-        // 3. Gọi DAO để xử lý
-        if (solve.dao.congTienThuongTheoPhong(phongDuocChon, tien, lyDo)) {
-            solve.dao.ghiLichSu("DEPT", lyDo, "Phòng: " + phongDuocChon + " - Tiền: " + String.format("%,d", tien), solve.taiKhoanHienTai);     
-            JOptionPane.showMessageDialog(solve, "✅ Đã chi thưởng cho phòng " + phongDuocChon.toUpperCase() + "!");
-            solve.loadData("NV.MaNV ASC");
+        if (controller.dao.congTienThuongTheoPhong(phongDuocChon, tien, lyDo)) {
+            controller.dao.ghiLichSu("DEPT", lyDo, "Phòng: " + phongDuocChon + " - Tiền: " + String.format("%,d", tien), controller.taiKhoanHienTai);     
+            JOptionPane.showMessageDialog(controller, "✅ Đã chi thưởng cho phòng " + phongDuocChon.toUpperCase() + "!");
+            controller.loadData("NV.MaNV ASC");
         } else {
-            JOptionPane.showMessageDialog(solve, "❌ Lỗi hệ thống khi cộng tiền!");
+            JOptionPane.showMessageDialog(controller, "❌ Lỗi hệ thống khi cộng tiền!");
         }
     }
 
     public void xuLyThuongCaNhan(String maNV, String tenNV, String sTien) {
         try {
             long tien = Long.parseLong(sTien.replaceAll("[^0-9]", ""));
-            if (tien <= 0) { JOptionPane.showMessageDialog(solve, "Số tiền thưởng phải lớn hơn 0!"); return; }
+            if (tien <= 0) { JOptionPane.showMessageDialog(controller, "Số tiền thưởng phải lớn hơn 0!"); return; }
 
-            // [MỚI] Hỏi lý do thưởng cá nhân
-            String lyDo = JOptionPane.showInputDialog(solve, "Nhập lý do thưởng cho " + tenNV + ":", "Thưởng Nóng", JOptionPane.QUESTION_MESSAGE);
+            String lyDo = JOptionPane.showInputDialog(controller, "Nhập lý do thưởng cho " + tenNV + ":", "Thưởng Nóng", JOptionPane.QUESTION_MESSAGE);
             if (lyDo == null || lyDo.trim().isEmpty()) lyDo = "Thưởng đột xuất";
 
-            // [FIX] Truyền thêm lyDo vào
-            solve.dao.congTienThuongCaNhan(maNV, tien, lyDo);
+            controller.dao.congTienThuongCaNhan(maNV, tien, lyDo);
             
-            solve.dao.ghiLichSu(maNV, "Thưởng Cá Nhân", lyDo + " - Tiền: " + String.format("%,d", tien), solve.taiKhoanHienTai);
+            controller.dao.ghiLichSu(maNV, "Thưởng Cá Nhân", lyDo + " - Tiền: " + String.format("%,d", tien), controller.taiKhoanHienTai);
 
-            JOptionPane.showMessageDialog(solve, "✅ Đã thưởng nóng cho " + tenNV);
-            solve.loadData("NV.MaNV ASC"); 
+            JOptionPane.showMessageDialog(controller, "✅ Đã thưởng nóng cho " + tenNV);
+            controller.loadData("NV.MaNV ASC"); 
 
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(solve, "Vui lòng nhập số tiền hợp lệ!");
+            JOptionPane.showMessageDialog(controller, "Vui lòng nhập số tiền hợp lệ!");
         }
     }
 
     public void xuLyChotThang() {
-        int confirm = JOptionPane.showConfirmDialog(solve, "BẠN CÓ CHẮC MUỐN CHỐT SỔ THÁNG NÀY?\n\nHành động này sẽ xóa hết ngày trễ, phạt, thưởng để tính tháng mới.", "Cảnh báo Reset", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        int confirm = JOptionPane.showConfirmDialog(controller, "BẠN CÓ CHẮC MUỐN CHỐT SỔ THÁNG NÀY?\n\nHành động này sẽ xóa hết ngày trễ, phạt, thưởng để tính tháng mới.", "Cảnh báo Reset", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm == JOptionPane.YES_OPTION) {
-            if (solve.dao.resetThangMoi()) {
-                JOptionPane.showMessageDialog(solve, "✅ Đã reset dữ liệu cho tháng mới!");
-                solve.loadData("NV.MaNV ASC");
+            if (controller.dao.resetThangMoi()) {
+                JOptionPane.showMessageDialog(controller, "✅ Đã reset dữ liệu cho tháng mới!");
+                controller.loadData("NV.MaNV ASC");
             } else {
-                JOptionPane.showMessageDialog(solve, "❌ Lỗi hệ thống!");
+                JOptionPane.showMessageDialog(controller, "❌ Lỗi hệ thống!");
             }
         }
     }
     
+    // Xuất báo cáo ra file CSV (Excel)
     public void xuLyXuatExcel() {
-        // (Copy lại code cũ của cậu vào đây, đoạn này không đổi)
         javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
         fileChooser.setDialogTitle("Chọn nơi lưu file Excel");
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Excel File (*.csv)", "csv"));
-        int userSelection = fileChooser.showSaveDialog(solve);
+        int userSelection = fileChooser.showSaveDialog(controller);
         
         if (userSelection == javax.swing.JFileChooser.APPROVE_OPTION) {
             java.io.File fileToSave = fileChooser.getSelectedFile();
@@ -285,29 +284,30 @@ public class XuLySuKien {
                 filePath += ".csv";
             }
             try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(filePath), java.nio.charset.StandardCharsets.UTF_8))) {
-                bw.write("\uFEFF"); 
-                for (int i = 0; i < solve.table.getColumnCount(); i++) {
-                    bw.write(solve.table.getColumnName(i));
-                    if (i < solve.table.getColumnCount() - 1) bw.write(",");
+                bw.write("\uFEFF"); // BOM marker cho Excel đọc UTF-8
+                for (int i = 0; i < controller.table.getColumnCount(); i++) {
+                    bw.write(controller.table.getColumnName(i));
+                    if (i < controller.table.getColumnCount() - 1) bw.write(",");
                 }
                 bw.newLine();
-                for (int i = 0; i < solve.table.getRowCount(); i++) {
-                    for (int j = 0; j < solve.table.getColumnCount(); j++) {
-                        String val = solve.table.getValueAt(i, j).toString();
+                for (int i = 0; i < controller.table.getRowCount(); i++) {
+                    for (int j = 0; j < controller.table.getColumnCount(); j++) {
+                        String val = controller.table.getValueAt(i, j).toString();
                         val = val.replace(",", ""); 
                         bw.write(val);
-                        if (j < solve.table.getColumnCount() - 1) bw.write(",");
+                        if (j < controller.table.getColumnCount() - 1) bw.write(",");
                     }
                     bw.newLine();
                 }
-                JOptionPane.showMessageDialog(solve, "✅ Xuất file Excel thành công!\n" + filePath);
+                JOptionPane.showMessageDialog(controller, "✅ Xuất file Excel thành công!\n" + filePath);
                 java.awt.Desktop.getDesktop().open(new java.io.File(filePath));
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(solve, "❌ Lỗi khi xuất file: " + ex.getMessage());
+                JOptionPane.showMessageDialog(controller, "❌ Lỗi khi xuất file: " + ex.getMessage());
             }
         }
     }
     
+    // Logic xác định ngày lễ tự động
     private String layTenNgayLe(LocalDate date) {
         int day = date.getDayOfMonth();
         int month = date.getMonthValue();
@@ -323,18 +323,18 @@ public class XuLySuKien {
         LocalDate today = LocalDate.now();
         String tenLeDuongLich = layTenNgayLe(today); 
 
-        int row = solve.table.getSelectedRow();
+        int row = controller.table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(solve, "Vui lòng chọn nhân viên để chấm công!");
+            JOptionPane.showMessageDialog(controller, "Vui lòng chọn nhân viên để chấm công!");
             return;
         }
 
-        String maNV = solve.table.getValueAt(row, 0).toString();
-        String hoTen = solve.table.getValueAt(row, 1).toString();
+        String maNV = controller.table.getValueAt(row, 0).toString();
+        String hoTen = controller.table.getValueAt(row, 1).toString();
         
         Object[] options = { "Lễ Âm Lịch / Thủ Công", "Theo Dương Lịch (Auto)", "❌ Hủy Bỏ" };
 
-        int choice = JOptionPane.showOptionDialog(solve,
+        int choice = JOptionPane.showOptionDialog(controller,
             "Hôm nay là: " + today + "\n" +
             "Hệ thống phát hiện lễ dương lịch: " + (tenLeDuongLich != null ? tenLeDuongLich : "Không có") + "\n\n" +
             "Bạn muốn chấm công cho [" + hoTen + "] theo chế độ nào?",
@@ -346,7 +346,7 @@ public class XuLySuKien {
         if (choice == 2 || choice == JOptionPane.CLOSED_OPTION) return;
 
         if (choice == 0) {
-            String tenLeInput = JOptionPane.showInputDialog(solve, "Nhập tên ngày lễ (Ví dụ: Mùng 1 Tết...):", "Xác nhận Lễ Đặc Biệt", JOptionPane.INFORMATION_MESSAGE);
+            String tenLeInput = JOptionPane.showInputDialog(controller, "Nhập tên ngày lễ (Ví dụ: Mùng 1 Tết...):", "Xác nhận Lễ Đặc Biệt", JOptionPane.INFORMATION_MESSAGE);
             if (tenLeInput == null || tenLeInput.trim().isEmpty()) return;
             heSoLuongNgay = 3;
             lyDo = "Trực lễ: " + tenLeInput + " (x" + heSoLuongNgay + ")";
@@ -361,57 +361,59 @@ public class XuLySuKien {
             }
         }
 
-        NhanVien nv = solve.dao.getNhanVienTheoMa(maNV); 
+        NhanVien nv = controller.dao.getNhanVienTheoMa(maNV); 
         long luong1Ngay = (long) ((nv.getLuongCoBan() * nv.getHeSoLuong()) / 26);
         long tienCongThem = luong1Ngay * heSoLuongNgay;
 
-        int confirm = JOptionPane.showConfirmDialog(solve, 
+        int confirm = JOptionPane.showConfirmDialog(controller, 
             "XÁC NHẬN CHẤM CÔNG:\n- Nhân viên: " + hoTen + "\n- Chế độ: " + lyDo + "\n- Tiền cộng thêm: " + String.format("%,d VNĐ", tienCongThem),
             "Thực Thi", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            solve.dao.congTienThuongChoNhanVien(maNV, tienCongThem);
-            solve.dao.ghiLichSu(maNV, "Chấm công", lyDo + " - Tiền: " + String.format("%,d", tienCongThem), solve.taiKhoanHienTai);
-            solve.loadData("NV.MaNV ASC"); 
-            JOptionPane.showMessageDialog(solve, "✅ Đã chấm công thành công!");
+            controller.dao.congTienThuongChoNhanVien(maNV, tienCongThem);
+            controller.dao.ghiLichSu(maNV, "Chấm công", lyDo + " - Tiền: " + String.format("%,d", tienCongThem), controller.taiKhoanHienTai);
+            controller.loadData("NV.MaNV ASC"); 
+            JOptionPane.showMessageDialog(controller, "✅ Đã chấm công thành công!");
         }
     }
     
     public void xuLyTimKiemDaNang() { 
-        solve.lastMa = solve.txtMaNV.getText().trim();
-        solve.lastTen = solve.txtHoTen.getText().trim();
-        String selectedPhong = solve.cboPhongBan.getSelectedItem() != null ? solve.cboPhongBan.getSelectedItem().toString() : "";
-        solve.lastPhong = selectedPhong.equals("Tất cả Phòng Ban") ? "" : selectedPhong;
-        solve.lastLuong = "";
-        solve.lastHeSo = solve.cboHeSo.getSelectedItem() != null ? solve.cboHeSo.getSelectedItem().toString() : "";
-        solve.reloadTable("NV.MaNV ASC"); 
+        controller.lastMa = controller.txtMaNV.getText().trim();
+        controller.lastTen = controller.txtHoTen.getText().trim();
+        String selectedPhong = controller.cboPhongBan.getSelectedItem() != null ? controller.cboPhongBan.getSelectedItem().toString() : "";
+        controller.lastPhong = selectedPhong.equals("Tất cả Phòng Ban") ? "" : selectedPhong;
+        controller.lastLuong = "";
+        controller.lastHeSo = controller.cboHeSo.getSelectedItem() != null ? controller.cboHeSo.getSelectedItem().toString() : "";
+        controller.reloadTable("NV.MaNV ASC"); 
     }
 
+    // Gửi email phiếu lương hàng loạt (Chạy ngầm)
     public void xuLyPhatLuongHangLoat() {
-         java.util.List<NhanVien> listNV = solve.dao.layDanhSachNhanVien("NV.MaNV ASC");
+         java.util.List<NhanVien> listNV = controller.dao.layDanhSachNhanVien("NV.MaNV ASC");
          int count = 0;
          String thangHienTai = java.time.LocalDate.now().getMonthValue() + "/" + java.time.LocalDate.now().getYear();
 
          for (NhanVien nv : listNV) {
-             long thucLinh = nv.getGross(); // Sửa getGross() thành getThucLinh() nếu class NV dùng tên này
+             long thucLinh = nv.getGross(); 
              
              String noiDung = String.format(
                  "Chào %s,\n\nĐây là phiếu lương tháng %s của bạn:\n--------------------------------\n- Lương Cứng:   %,d VNĐ\n- Hệ Số Lương:  %s\n- Thưởng Thêm:  %,d VNĐ\n- Bị Trừ Phạt:  %,d VNĐ\n--------------------------------\nTHỰC LĨNH:      %,d VNĐ\n\nCảm ơn bạn đã cống hiến cho Konami!",
                  nv.getHoTen(), thangHienTai, nv.getLuongCoBan(), nv.getHeSoLuong(), nv.getTienThuong(), nv.getTienPhat(), thucLinh
              );
 
-             if (solve.dao.guiThuMoi(nv.getMaNV(), "Phiếu Lương Tháng " + thangHienTai, noiDung)) {
+             // Gửi vào bảng HopThu trong CSDL
+             if (controller.dao.guiThuMoi(nv.getMaNV(), "Phiếu Lương Tháng " + thangHienTai, noiDung)) {
                  count++;
              }
          }
-         javax.swing.JOptionPane.showMessageDialog(solve, "✅ Đã gửi thành công " + count + " phiếu lương vào hộp thư!");
+         javax.swing.JOptionPane.showMessageDialog(controller, "✅ Đã gửi thành công " + count + " phiếu lương vào hộp thư!");
     }
 
     public void xuLyGuiPhieuLuongRieng(String maNV) {
-        NhanVien nv = solve.dao.getNhanVienTheoMa(maNV);
+        NhanVien nv = controller.dao.getNhanVienTheoMa(maNV);
         if (nv == null) return;
 
-        int confirm = JOptionPane.showConfirmDialog(solve, "Gửi lại phiếu lương riêng cho nhân viên: " + nv.getHoTen() + "?", "Xác Nhận Gửi Lẻ", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(controller, "Gửi lại phiếu lương riêng cho nhân viên: " + nv.getHoTen() + "?", "Xác Nhận Gửi Lẻ", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
         long thucLinh = nv.getGross(); 
@@ -422,15 +424,16 @@ public class XuLySuKien {
             nv.getHoTen(), thangHienTai, nv.getLuongCoBan(), nv.getHeSoLuong(), nv.getTienThuong(), nv.getTienPhat(), thucLinh
         );
 
-        if (solve.dao.guiThuMoi(nv.getMaNV(), "Phiếu Lương Điều Chỉnh T" + thangHienTai, noiDung)) {
-            JOptionPane.showMessageDialog(solve, "✅ Đã gửi phiếu lương riêng cho " + nv.getHoTen());
+        if (controller.dao.guiThuMoi(nv.getMaNV(), "Phiếu Lương Điều Chỉnh T" + thangHienTai, noiDung)) {
+            JOptionPane.showMessageDialog(controller, "✅ Đã gửi phiếu lương riêng cho " + nv.getHoTen());
         } else {
-            JOptionPane.showMessageDialog(solve, "❌ Gửi thất bại!");
+            JOptionPane.showMessageDialog(controller, "❌ Gửi thất bại!");
         }
     }
     
+    // Tính toán lại toàn bộ lương (Gross/Net/Thuế) trước khi phát
     public void xuLyPhatLuongToanCongTy() {
-        int confirm = JOptionPane.showConfirmDialog(solve, 
+        int confirm = JOptionPane.showConfirmDialog(controller, 
             "Hệ thống sẽ tính toán lại lương cho TOÀN BỘ nhân viên dựa trên:\n" +
             "- Giờ tăng ca\n- Thưởng/Phạt hiện tại\n- Thuế TNCN & Bảo hiểm\n\nTiếp tục?", 
             "Xác nhận phát lương", JOptionPane.YES_NO_OPTION);
@@ -440,7 +443,7 @@ public class XuLySuKien {
         try {
             java.sql.Connection conn = database.ConnectDB.getConnection();
             
-            // 1. Lấy dữ liệu thô để tính toán
+            // Lấy dữ liệu thô để tính toán
             String sqlGet = "SELECT MaNV, LuongCoBan, HeSoLuong, GioTangCa, HeSoTangCa, TienThuong, TienPhat, NgayVaoLam FROM NhanVien";
             PreparedStatement psGet = conn.prepareStatement(sqlGet);
             ResultSet rs = psGet.executeQuery();
@@ -448,35 +451,33 @@ public class XuLySuKien {
             String sqlUpdate = "UPDATE NhanVien SET ThucLinh = ? WHERE MaNV = ?";
             PreparedStatement psUpdate = conn.prepareStatement(sqlUpdate);
             
-            // 2. Vòng lặp tính toán (Java xử lý Logic -> SQL lưu trữ)
+            // Vòng lặp tính toán: Java xử lý Logic -> SQL lưu trữ
             while (rs.next()) {
                 String maNV = rs.getString("MaNV");
                 long luongCB = rs.getLong("LuongCoBan");
                 float heSo = rs.getFloat("HeSoLuong");
-                double gioOT = rs.getDouble("GioTangCa"); // Cột mới
-                double heSoOT = rs.getDouble("HeSoTangCa"); // Cột mới
+                double gioOT = rs.getDouble("GioTangCa"); 
+                double heSoOT = rs.getDouble("HeSoTangCa"); 
                 java.sql.Date ngayVaoLam = rs.getDate("NgayVaoLam");
-                if (heSoOT == 0) heSoOT = 1.5; // Giá trị mặc định nếu null
+                if (heSoOT == 0) heSoOT = 1.5; 
                 
                 long thuong = rs.getLong("TienThuong");
                 long phat = rs.getLong("TienPhat");
                 
-                // Giả định số người phụ thuộc là 0 (hoặc cậu có thể thêm cột này vào DB sau)
+                // Sử dụng Class tiện ích MayTinhLuong để tính con số cuối cùng
                 long thucLinh = MayTinhLuong.tinhThucLinhFinal(luongCB, heSo, gioOT, heSoOT, thuong, phat, 0,ngayVaoLam);
                 
-                // Đẩy vào Batch Update
+                // Đẩy vào Batch Update để tối ưu hiệu năng
                 psUpdate.setLong(1, thucLinh);
                 psUpdate.setString(2, maNV);
                 psUpdate.addBatch();
             }
             
-            // 3. Thực thi cập nhật hàng loạt
+            // Thực thi cập nhật hàng loạt
             int[] results = psUpdate.executeBatch();
-            conn.commit(); // Nếu connection của cậu setAutoCommit(false)
             
             int soNguoiDuocCapNhat = 0;
             for (int r : results) {
-                // Trong JDBC, số >= 0 nghĩa là số dòng bị ảnh hưởng, SUCCESS_NO_INFO cũng là thành công
                 if (r >= 0 || r == java.sql.Statement.SUCCESS_NO_INFO) {
                     soNguoiDuocCapNhat++;
                 }
@@ -485,46 +486,43 @@ public class XuLySuKien {
             psGet.close();
             psUpdate.close();
             
-            JOptionPane.showMessageDialog(solve, "✅ Đã tính toán và cập nhật lương thành công cho " + soNguoiDuocCapNhat + " nhân sự!");
+            JOptionPane.showMessageDialog(controller, "✅ Đã tính toán và cập nhật lương thành công cho " + soNguoiDuocCapNhat + " nhân sự!");
             
             // Refresh lại bảng hiển thị
-            solve.loadData("NV.MaNV ASC");
+            controller.loadData("NV.MaNV ASC");
             
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(solve, "Lỗi phát lương: " + e.getMessage());
+            JOptionPane.showMessageDialog(controller, "Lỗi phát lương: " + e.getMessage());
         }
     }
     
+    // Lưu trữ lương tháng vào bảng Lịch Sử và Reset bảng chính
 	public void chotSoVaLuuTruThangNay() {
-        // 1. Tạo danh sách tháng để chọn (Mặc định chọn tháng hiện tại)
         int currentMonth = LocalDate.now().getMonthValue();
         int currentYear = LocalDate.now().getYear();
         
-        // Tạo option cho 3 tháng gần nhất (để lỡ có chốt bù)
         String[] months = {
             "Tháng " + currentMonth + "/" + currentYear,
             "Tháng " + (currentMonth == 1 ? 12 : currentMonth - 1) + "/" + (currentMonth == 1 ? currentYear - 1 : currentYear),
             "Tháng " + (currentMonth <= 2 ? 10 + currentMonth : currentMonth - 2) + "/" + (currentMonth <= 2 ? currentYear - 1 : currentYear)
         };
 
-        String selectedMonthStr = (String) JOptionPane.showInputDialog(solve, 
+        String selectedMonthStr = (String) JOptionPane.showInputDialog(controller, 
             "Chọn kỳ lương muốn chốt sổ và lưu trữ:", 
             "Xác Nhận Chốt Sổ", 
             JOptionPane.QUESTION_MESSAGE, 
             null, 
             months, 
-            months[0]); // Mặc định chọn tháng hiện tại
+            months[0]);
 
-        if (selectedMonthStr == null) return; // Nếu bấm Cancel thì thôi
+        if (selectedMonthStr == null) return;
 
-        // Parse lại tháng năm từ chuỗi vừa chọn
         String[] parts = selectedMonthStr.replace("Tháng ", "").split("/");
         int thangChot = Integer.parseInt(parts[0]);
         int namChot = Integer.parseInt(parts[1]);
 
-        // 2. Hỏi xác nhận lần cuối
-        int confirm = JOptionPane.showConfirmDialog(solve, 
+        int confirm = JOptionPane.showConfirmDialog(controller, 
             "XÁC NHẬN CHỐT LƯƠNG " + selectedMonthStr + "?\n\n" +
             "⚠️ Dữ liệu sẽ được lưu vào lịch sử và reset bảng lương về 0.",
             "Cảnh Báo", JOptionPane.YES_NO_OPTION);
@@ -534,18 +532,18 @@ public class XuLySuKien {
         try {
             java.sql.Connection conn = database.ConnectDB.getConnection();
             
-            // 3. Kiểm tra xem tháng này đã chốt chưa (Tránh lưu trùng)
+            // Kiểm tra tránh trùng lặp dữ liệu tháng cũ
             String sqlCheck = "SELECT COUNT(*) FROM BangLuongLuuTru WHERE Thang = ? AND Nam = ?";
             PreparedStatement psCheck = conn.prepareStatement(sqlCheck);
             psCheck.setInt(1, thangChot);
             psCheck.setInt(2, namChot);
             ResultSet rsCheck = psCheck.executeQuery();
             if (rsCheck.next() && rsCheck.getInt(1) > 0) {
-                JOptionPane.showMessageDialog(solve, "❌ Lương tháng " + thangChot + "/" + namChot + " ĐÃ ĐƯỢC CHỐT trước đó rồi!", "Trùng Dữ Liệu", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(controller, "❌ Lương tháng " + thangChot + "/" + namChot + " ĐÃ ĐƯỢC CHỐT trước đó rồi!", "Trùng Dữ Liệu", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // 4. Thực hiện Lưu Trữ (INSERT)
+            // Sao chép dữ liệu từ bảng NhanVien sang bảng BangLuongLuuTru
             String sqlArchive = "INSERT INTO BangLuongLuuTru (MaNV, HoTen, Thang, Nam, LuongCung, TienThuong, TienPhat, ThucLinh, LyDoGhiChu) " +
                                 "SELECT MaNV, HoTen, ?, ?, LuongCoBan, TienThuong, TienPhat, ThucLinh, LyDoThuongPhat FROM NhanVien";
             
@@ -555,23 +553,23 @@ public class XuLySuKien {
             int rowsSaved = psArchive.executeUpdate();
             psArchive.close();
 
-            // 5. Reset dữ liệu
+            // Reset các chỉ số về 0 để bắt đầu tháng mới
             if (rowsSaved > 0) {
                 String sqlReset = "UPDATE NhanVien SET TienThuong = 0, TienPhat = 0, GioTangCa = 0, HeSoTangCa = 1.5, ThucLinh = 0, LyDoThuongPhat = N''";
                 PreparedStatement psReset = conn.prepareStatement(sqlReset);
                 psReset.executeUpdate();
                 psReset.close();
                 
-                JOptionPane.showMessageDialog(solve, "✅ THÀNH CÔNG!\nĐã lưu trữ hồ sơ lương " + selectedMonthStr + ".");
-                solve.loadData("NV.MaNV ASC");
+                JOptionPane.showMessageDialog(controller, "✅ THÀNH CÔNG!\nĐã lưu trữ hồ sơ lương " + selectedMonthStr + ".");
+                controller.loadData("NV.MaNV ASC");
             } else {
-                JOptionPane.showMessageDialog(solve, "⚠️ Không có dữ liệu nhân viên để lưu!");
+                JOptionPane.showMessageDialog(controller, "⚠️ Không có dữ liệu nhân viên để lưu!");
             }
             conn.close();
 
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(solve, "❌ Lỗi Chốt Sổ: " + e.getMessage());
+            JOptionPane.showMessageDialog(controller, "❌ Lỗi Chốt Sổ: " + e.getMessage());
         }
     }
 }

@@ -36,11 +36,11 @@ public class ThongKeAdmin extends JFrame {
     
     private DefaultTableModel mainModel;
 
-    private final Color COL_PRIMARY = new Color(0, 102, 204);     
-    private final Color COL_SUCCESS = new Color(40, 167, 69);    
-    private final Color COL_DANGER = new Color(220, 53, 69);      
-    private final Color COL_WARNING = new Color(255, 140, 0);     
-    private final Color COL_INFO = new Color(102, 51, 153);       
+    private final Color COL_PRIMARY = new Color(0, 102, 204);      
+    private final Color COL_SUCCESS = new Color(40, 167, 69);     
+    private final Color COL_DANGER = new Color(220, 53, 69);       
+    private final Color COL_WARNING = new Color(255, 140, 0);      
+    private final Color COL_INFO = new Color(102, 51, 153);        
     
     private final Font FONT_HEADER = new Font("Segoe UI", Font.BOLD, 14);
 
@@ -51,24 +51,21 @@ public class ThongKeAdmin extends JFrame {
 
     private void initUI() {
         setTitle("Báo cáo Quản lí Nhân Sự & Lương thưởng - Konami Enterprise");
-        setSize(1100, 700); // Kích thước rộng rãi
+        setSize(1100, 700); 
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        getContentPane().setBackground(new Color(245, 247, 250)); // Màu nền xám nhẹ hiện đại
+        getContentPane().setBackground(new Color(245, 247, 250)); 
 
-        // 1. HEADER
         JLabel lblTitle = new JLabel("BẢNG PHÂN TÍCH DỮ LIỆU", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(COL_PRIMARY);
         lblTitle.setBorder(new EmptyBorder(20, 0, 20, 0));
         add(lblTitle, BorderLayout.NORTH);
 
-        // 2. TABBED PANE (CHIA TAB)
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Dialog", Font.BOLD, 14));
         tabbedPane.setBackground(Color.WHITE);
 
-        // Thêm 6 Tab chức năng
         tabbedPane.addTab("  📊 Tổng Quan  ", null, taoPanelTongQuan());
         tabbedPane.addTab("  🏢 Tài Chính Phòng Ban  ", null, taoPanelTaiChinhPhongBan());
         tabbedPane.addTab("  🏆 Danh Sách Khen Thưởng  ", null, taoPanelKhenThuong());
@@ -78,47 +75,35 @@ public class ThongKeAdmin extends JFrame {
 
         add(tabbedPane, BorderLayout.CENTER);
 
-     // --- PANEL BOTTOM (CHỨA NÚT) ---
-        // Đổi sang BorderLayout để chia 2 phe: Trái và Phải
         JPanel pnlBot = new JPanel(new BorderLayout()); 
         pnlBot.setBackground(new Color(240, 240, 240));
-        pnlBot.setBorder(new EmptyBorder(10, 10, 10, 10)); // Thêm viền cho thoáng
+        pnlBot.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // 1. Nút bên Trái: Xem Lịch Sử
-        JButton btnLichSu = new JButton("Lịch Sử Lương");
+        JButton btnLichSu = new JButton("Lịch Sử Thưởng");
         btnLichSu.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnLichSu.setBackground(new Color(255, 193, 7)); // Màu vàng
+        btnLichSu.setBackground(new Color(255, 193, 7)); 
         btnLichSu.setForeground(Color.BLACK);
         btnLichSu.setPreferredSize(new Dimension(160, 35));
-        // Gọi hàm hiển thị lịch sử (đã viết ở bước trước)
         btnLichSu.addActionListener(e -> hienThiCuaSoLichSu());
         
-        // 2. Nút bên Phải: Đóng Báo Cáo
         JButton btnClose = new JButton("Đóng Báo Cáo");
         btnClose.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnClose.setPreferredSize(new Dimension(120, 35));
         btnClose.addActionListener(e -> dispose());
 
-        // Add vào 2 phía đối diện
-        pnlBot.add(btnLichSu, BorderLayout.WEST); // Góc Trái
-        pnlBot.add(btnClose, BorderLayout.EAST); // Góc Phải
+        pnlBot.add(btnLichSu, BorderLayout.WEST); 
+        pnlBot.add(btnClose, BorderLayout.EAST); 
 
         add(pnlBot, BorderLayout.SOUTH);
-        
-      
     }
-
-    private JPanel taoPanelTongQuan() {
-        // 1. Panel chính dùng BorderLayout để xếp Trên - Dưới
+ 
+    private JPanel taoPanelTongQuan() {	
         JPanel pnlMain = new JPanel(new BorderLayout(0, 20));
         pnlMain.setBackground(Color.WHITE);
         pnlMain.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // 2. Panel chứa 4 ô thống kê (KPIs) - Giữ nguyên logic cũ
-        JPanel pnlKPI = new JPanel(new GridLayout(1, 4, 20, 0)); // Đổi thành 1 hàng 4 cột cho gọn (hoặc giữ 2x2 tùy ý cậu)
-        // Nếu cậu thích 2 hàng 2 cột như cũ thì sửa dòng trên thành: new GridLayout(2, 2, 30, 30)
+        JPanel pnlKPI = new JPanel(new GridLayout(1, 4, 20, 0)); 
         pnlKPI.setBackground(Color.WHITE);
-        // pnlKPI.setPreferredSize(new Dimension(1000, 250)); // Nếu dùng 2x2 thì bỏ comment dòng này để set chiều cao
 
         int tongNV = mainModel.getRowCount();
         long tongLuong = 0;
@@ -134,25 +119,22 @@ public class ThongKeAdmin extends JFrame {
         }
         long luongTB = tongNV > 0 ? tongLuong / tongNV : 0;
 
-        // Thêm 4 thẻ vào Panel KPI
         pnlKPI.add(taoOThongKe("TỔNG NHÂN SỰ", tongNV + " nhân viên", COL_PRIMARY));
         pnlKPI.add(taoOThongKe("TỔNG QUỸ LƯƠNG", String.format("%,d", tongLuong) + " VNĐ", COL_SUCCESS));
         pnlKPI.add(taoOThongKe("THU NHẬP CAO NHẤT", String.format("%,d", luongCaoNhat) + " VNĐ", COL_INFO));
         pnlKPI.add(taoOThongKe("THU NHẬP TRUNG BÌNH", String.format("%,d", luongTB) + " VNĐ", COL_WARNING));
 
-        // 3. Ráp vào Panel chính
-        pnlMain.add(pnlKPI, BorderLayout.NORTH); // KPI nằm trên
-        pnlMain.add(createChartPanel(), BorderLayout.CENTER); // Biểu đồ nằm dưới (Chiếm phần còn lại)
+        pnlMain.add(pnlKPI, BorderLayout.NORTH); 
+        pnlMain.add(createChartPanel(), BorderLayout.CENTER); 
 
         return pnlMain;
     }
-
+   
     private JPanel taoPanelTaiChinhPhongBan() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
         pnl.setBackground(Color.WHITE);
 
-        // Header ghi chú
         JLabel lblNote = new JLabel("<html><i>* Bảng phân tích chi phí lương và so sánh mức thu nhập trung bình giữa các khối phòng ban.</i></html>");
         lblNote.setBorder(new EmptyBorder(0, 5, 5, 0));
         pnl.add(lblNote, BorderLayout.NORTH);
@@ -162,7 +144,6 @@ public class ThongKeAdmin extends JFrame {
         JTable tblPB = new JTable(modelPB);
         styleTable(tblPB);
 
-        // --- TÍNH TOÁN DỮ LIỆU ---
         Map<String, Integer> countMap = new HashMap<>();
         Map<String, Long> sumMap = new HashMap<>();
         long totalCompanySalary = 0;
@@ -180,7 +161,6 @@ public class ThongKeAdmin extends JFrame {
 
         if (totalCompanySalary == 0) totalCompanySalary = 1; 
 
-        // Đổ dữ liệu vào Bảng
         for (String phong : countMap.keySet()) {
             int soNV = countMap.get(phong);
             long tongL = sumMap.get(phong);
@@ -196,17 +176,16 @@ public class ThongKeAdmin extends JFrame {
             });
         }
 
-        // --- PHẦN MỚI: THÊM BIỂU ĐỒ VÀO DƯỚI ĐÁY ---
-        // Gọi hàm vẽ biểu đồ (viết ở Bước 2)
         JPanel pnlCharts = createDeptFinanceCharts(sumMap, countMap); 
-        pnlCharts.setPreferredSize(new Dimension(1000, 320)); // Chiều cao vừa đủ đẹp
+        pnlCharts.setPreferredSize(new Dimension(1000, 320)); 
         
-        pnl.add(new JScrollPane(tblPB), BorderLayout.CENTER); // Bảng nằm giữa
-        pnl.add(pnlCharts, BorderLayout.SOUTH); // Biểu đồ nằm đáy
+        pnl.add(new JScrollPane(tblPB), BorderLayout.CENTER); 
+        pnl.add(pnlCharts, BorderLayout.SOUTH); 
         
         return pnl;
     
     }
+    
     private JPanel taoPanelKhenThuong() {
         JPanel pnl = new JPanel(new BorderLayout(0, 10));
         pnl.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -214,18 +193,16 @@ public class ThongKeAdmin extends JFrame {
 
         String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban", "Nội Dung Khen Thưởng", "Số Tiền (VNĐ)"};
         
-        // [FIX 2] Cấu hình bảng: Chỉ cho phép sửa cột 3 (Nội Dung)
         DefaultTableModel modelThuong = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 3; // Chỉ cột "Nội Dung" (Index 3) trả về True
+                return column == 3; 
             }
         };
         
         JTable tblThuong = new JTable(modelThuong);
         styleTable(tblThuong);
         
-        // Render màu xanh cho cột Tiền
         tblThuong.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public void setValue(Object value) {
@@ -235,15 +212,13 @@ public class ThongKeAdmin extends JFrame {
             }
         });
         
-        // Độ rộng cột
         tblThuong.getColumnModel().getColumn(3).setPreferredWidth(300);
 
-        // [TÍNH NĂNG MỚI] Lắng nghe sự kiện sửa đổi để lưu vào Database ngay lập tức
         modelThuong.addTableModelListener(e -> {
             if (e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
                 int row = e.getFirstRow();
                 int col = e.getColumn();
-                if (col == 3 && row >= 0) { // Nếu sửa cột Nội Dung
+                if (col == 3 && row >= 0) { 
                     String maNV = modelThuong.getValueAt(row, 0).toString();
                     String lyDoMoi = modelThuong.getValueAt(row, 3).toString();
                     
@@ -255,7 +230,6 @@ public class ThongKeAdmin extends JFrame {
                         ps.setString(2, maNV);
                         ps.executeUpdate();
                         conn.close();
-                        // Không cần hiện thông báo để trải nghiệm mượt mà (Silent Save)
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + ex.getMessage());
@@ -270,12 +244,11 @@ public class ThongKeAdmin extends JFrame {
         try {
             java.sql.Connection conn = database.ConnectDB.getConnection();
             
-            // [FIX 1] Thêm điều kiện ẩn Admin và Pyke1001
             String sql = "SELECT NV.MaNV, NV.HoTen, PB.TenPB, NV.TienThuong, NV.LyDoThuongPhat " +
                          "FROM NhanVien NV " +
                          "JOIN PhongBan PB ON NV.MaPB = PB.MaPB " +
                          "WHERE NV.TienThuong > 0 " +
-                         "AND NV.MaNV NOT IN ('admin', 'pyke1001')"; // <--- Dòng lọc quan trọng
+                         "AND NV.MaNV NOT IN ('admin', 'pyke1001')"; 
             
             java.sql.Statement stmt = conn.createStatement();
             java.sql.ResultSet rs = stmt.executeQuery(sql);
@@ -306,7 +279,6 @@ public class ThongKeAdmin extends JFrame {
             e.printStackTrace();
         }
 
-        // Panel Info Header
         JPanel pnlInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
         pnlInfo.setBackground(new Color(235, 250, 235));
         pnlInfo.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COL_SUCCESS));
@@ -315,7 +287,7 @@ public class ThongKeAdmin extends JFrame {
         lblCount.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblCount.setForeground(new Color(20, 100, 20));
         
-        JLabel lblSum = new JLabel("|   Tổng ngân sách thưởng: " + String.format("%,d", tongTienThuong) + " VNĐ");
+        JLabel lblSum = new JLabel("|    Tổng ngân sách thưởng: " + String.format("%,d", tongTienThuong) + " VNĐ");
         lblSum.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblSum.setForeground(COL_SUCCESS);
 
@@ -325,7 +297,6 @@ public class ThongKeAdmin extends JFrame {
         pnl.add(pnlInfo, BorderLayout.NORTH);
         pnl.add(new JScrollPane(tblThuong), BorderLayout.CENTER);
         
-        // Thêm ghi chú nhỏ bên dưới để người dùng biết là sửa được
         JLabel lblHint = new JLabel("💡 Mẹo: Nhấp đôi vào cột 'Nội Dung' để chỉnh sửa lý do thưởng. Các cột khác đã bị khóa.", JLabel.CENTER);
         lblHint.setForeground(Color.GRAY);
         lblHint.setBorder(new EmptyBorder(5,0,5,0));
@@ -344,7 +315,6 @@ public class ThongKeAdmin extends JFrame {
         JTable tblPhat = new JTable(modelPhat);
         styleTable(tblPhat);
         
-        // Render màu đỏ cho tiền phạt
         tblPhat.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public void setValue(Object value) {
@@ -358,11 +328,11 @@ public class ThongKeAdmin extends JFrame {
         int countViPham = 0;
 
         for (int i = 0; i < mainModel.getRowCount(); i++) {
-            String ngayTreStr = mainModel.getValueAt(i, 7).toString().replace(" ngày", "").trim(); // Cột 7
+            String ngayTreStr = mainModel.getValueAt(i, 7).toString().replace(" ngày", "").trim(); 
             int ngayTre = 0;
             try { ngayTre = Integer.parseInt(ngayTreStr); } catch (Exception e) {}
             
-            String tienPhatStr = mainModel.getValueAt(i, 8).toString().replace(",", ""); // Cột 8
+            String tienPhatStr = mainModel.getValueAt(i, 8).toString().replace(",", ""); 
             long tienPhat = 0;
             try { tienPhat = Long.parseLong(tienPhatStr); } catch (Exception e) {}
 
@@ -379,16 +349,15 @@ public class ThongKeAdmin extends JFrame {
             }
         }
 
-        // Panel Info Header
         JPanel pnlInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        pnlInfo.setBackground(new Color(255, 240, 240)); // Đỏ nhạt
+        pnlInfo.setBackground(new Color(255, 240, 240)); 
         pnlInfo.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COL_DANGER));
         
         JLabel lblCount = new JLabel("Nhân sự vi phạm: " + countViPham);
         lblCount.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblCount.setForeground(new Color(150, 20, 20));
         
-        JLabel lblSum = new JLabel("|   Tổng tiền phạt thu về: " + String.format("%,d", tongTienPhat) + " VNĐ");
+        JLabel lblSum = new JLabel("|    Tổng tiền phạt thu về: " + String.format("%,d", tongTienPhat) + " VNĐ");
         lblSum.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblSum.setForeground(COL_DANGER);
 
@@ -403,7 +372,6 @@ public class ThongKeAdmin extends JFrame {
     private JPanel taoOThongKe(String title, String value, Color color) {
         JPanel pnl = new JPanel(new BorderLayout());
         pnl.setBackground(color);
-        // Tạo viền đậm hơn màu nền một chút
         pnl.setBorder(BorderFactory.createLineBorder(color.darker(), 2));
         
         JLabel lblVal = new JLabel(value, SwingConstants.CENTER);
@@ -424,29 +392,25 @@ public class ThongKeAdmin extends JFrame {
         JPanel p = new JPanel(new BorderLayout());
         p.setBackground(Color.WHITE);
 
-        // Tiêu đề
         JLabel lblTitle = new JLabel("TOP 5 NHÂN VIÊN CÓ THỰC LĨNH CAO NHẤT THÁNG", JLabel.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(new Color(231, 76, 60)); // Màu đỏ cam nổi bật
+        lblTitle.setForeground(new Color(231, 76, 60)); 
         lblTitle.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 0, 15, 0));
         p.add(lblTitle, BorderLayout.NORTH);
 
-        // Xử lý dữ liệu: Lấy danh sách từ DAO và sắp xếp giảm dần theo Thực Lĩnh
         dao.NhanVienDAO dao = new dao.NhanVienDAO();
-        List<entity.NhanVien> list = dao.layDanhSachNhanVien("NV.MaNV ASC"); // Lấy hết về rồi tự sort
+        List<entity.NhanVien> list = dao.layDanhSachNhanVien("NV.MaNV ASC"); 
         
         Collections.sort(list, (o1, o2) -> Long.compare(o2.getGross(), o1.getGross()));
 
-        // Tạo bảng
         String[] cols = {"Hạng", "Mã NV", "Họ Tên", "Phòng Ban", "Thực Lĩnh (VNĐ)"};
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         
-        // Chỉ lấy Top 5 (hoặc ít hơn nếu danh sách ko đủ 5)
         int top = Math.min(5, list.size());
         for (int i = 0; i < top; i++) {
             entity.NhanVien nv = list.get(i);
             model.addRow(new Object[]{
-                (i + 1), // Hạng
+                (i + 1), 
                 nv.getMaNV(),
                 nv.getHoTen(),
                 nv.getTenPB() != null ? nv.getTenPB() : nv.getMaPB(),
@@ -459,7 +423,6 @@ public class ThongKeAdmin extends JFrame {
         tbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tbl.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         
-        // Căn giữa cột Hạng và Số tiền
         javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         tbl.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
@@ -494,14 +457,12 @@ public class ThongKeAdmin extends JFrame {
             }
         }
 
-        int total = Math.max(list.size(), 1); // Tránh chia cho 0
+        int total = Math.max(list.size(), 1); 
 
-        // Vẽ các thanh thống kê
         addBar(p, "Nhân sự mới (< 1 năm)", duoi1Nam, total, new Color(46, 204, 113), 50);
         addBar(p, "Nhân sự ổn định (1 - 3 năm)", tu1den3, total, new Color(52, 152, 219), 150);
         addBar(p, "Nhân sự cốt cán (> 3 năm)", tren3Nam, total, new Color(155, 89, 182), 250);
         
-        // Thêm ghi chú
         JLabel lblNote = new JLabel("<html><i>* Thống kê này giúp đánh giá độ ổn định nhân sự của công ty.<br>Tỷ lệ nhân viên cốt cán cao chứng tỏ chế độ đãi ngộ tốt.</i></html>");
         lblNote.setBounds(50, 350, 600, 40);
         lblNote.setForeground(Color.GRAY);
@@ -536,17 +497,14 @@ public class ThongKeAdmin extends JFrame {
     }
     
     private JPanel createChartPanel() {
-        JPanel p = new JPanel(new GridLayout(1, 2, 20, 0)); // Chia đôi màn hình
+        JPanel p = new JPanel(new GridLayout(1, 2, 20, 0)); 
         p.setBackground(Color.WHITE);
         p.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // --- BƯỚC 1: CHUẨN BỊ DỮ LIỆU ---
         dao.NhanVienDAO dao = new dao.NhanVienDAO();
         List<entity.NhanVien> list = dao.layDanhSachNhanVien("NV.MaNV ASC");
 
-        // Map lưu: Tên Phòng -> Số lượng nhân viên
         java.util.Map<String, Integer> mapCount = new java.util.HashMap<>();
-        // Map lưu: Tên Phòng -> Tổng lương
         java.util.Map<String, Long> mapSalary = new java.util.HashMap<>();
 
         for (entity.NhanVien nv : list) {
@@ -555,7 +513,6 @@ public class ThongKeAdmin extends JFrame {
             mapSalary.put(pb, mapSalary.getOrDefault(pb, 0L) + nv.getGross());
         }
 
-        // --- BƯỚC 2: VẼ BIỂU ĐỒ TRÒN (CƠ CẤU NHÂN SỰ) ---
         JPanel pnlPie = new JPanel() {
             @Override
             protected void paintComponent(java.awt.Graphics g) {
@@ -572,7 +529,6 @@ public class ThongKeAdmin extends JFrame {
                 int totalNV = list.size();
                 int startAngle = 90;
                 
-                // Bảng màu cho các phòng ban
                 Color[] colors = {
                     new Color(52, 152, 219), new Color(46, 204, 113), 
                     new Color(155, 89, 182), new Color(241, 196, 15), 
@@ -589,7 +545,6 @@ public class ThongKeAdmin extends JFrame {
                     g2.setColor(colors[colorIdx % colors.length]);
                     g2.fillArc(x, y, size, size, startAngle, angle);
                     
-                    // Vẽ chú thích (Legend) bên phải
                     g2.fillRect(x + size + 20, legendY, 15, 15);
                     g2.setColor(Color.BLACK);
                     g2.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -601,7 +556,6 @@ public class ThongKeAdmin extends JFrame {
                     colorIdx++;
                 }
                 
-                // Tiêu đề biểu đồ
                 g2.setColor(Color.DARK_GRAY);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 g2.drawString("CƠ CẤU NHÂN SỰ", x + size/3, y - 10);
@@ -611,7 +565,6 @@ public class ThongKeAdmin extends JFrame {
         pnlPie.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(230, 230, 230)));
         p.add(pnlPie);
 
-        // --- BƯỚC 3: VẼ BIỂU ĐỒ CỘT (TỶ TRỌNG QUỸ LƯƠNG) ---
         JPanel pnlBar = new JPanel() {
             @Override
             protected void paintComponent(java.awt.Graphics g) {
@@ -623,17 +576,15 @@ public class ThongKeAdmin extends JFrame {
                 int h = getHeight();
                 int pad = 40;
                 
-                // Tìm lương cao nhất để chia tỷ lệ
                 long maxSalary = 0;
                 for (long val : mapSalary.values()) if (val > maxSalary) maxSalary = val;
                 if (maxSalary == 0) maxSalary = 1;
 
                 int barW = (w - pad * 2) / Math.max(1, mapSalary.size()) - 20;
-                if (barW > 60) barW = 60; // Giới hạn độ rộng cột
+                if (barW > 60) barW = 60; 
                 
                 int x = pad;
                 
-                // Tiêu đề
                 g2.setColor(Color.DARK_GRAY);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 g2.drawString("QUỸ LƯƠNG PHÒNG BAN", w/3, 30);
@@ -649,13 +600,11 @@ public class ThongKeAdmin extends JFrame {
                     g2.setColor(colors[i % colors.length]);
                     g2.fillRect(x, y, barW, barH);
                     
-                    // Vẽ số tiền trên cột (Rút gọn Triệu)
                     g2.setColor(Color.BLACK);
                     g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
                     String money = String.format("%.1fM", val / 1000000.0);
                     g2.drawString(money, x + (barW - g2.getFontMetrics().stringWidth(money))/2, y - 5);
                     
-                    // Vẽ tên phòng dưới cột (Cắt ngắn nếu dài)
                     String shortName = key.length() > 10 ? key.substring(0, 8) + ".." : key;
                     g2.drawString(shortName, x, h - pad + 20);
 
@@ -663,7 +612,6 @@ public class ThongKeAdmin extends JFrame {
                     i++;
                 }
                 
-                // Vẽ trục hoành
                 g2.setColor(Color.GRAY);
                 g2.drawLine(pad - 10, h - pad, w - 10, h - pad);
             }
@@ -849,7 +797,6 @@ public class ThongKeAdmin extends JFrame {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // --- 1. PANEL BỘ LỌC (NORTH) ---
         JPanel pnlFilter = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlFilter.setBackground(new Color(240, 240, 240));
         pnlFilter.setBorder(new EmptyBorder(10, 20, 10, 20));
@@ -871,35 +818,28 @@ public class ThongKeAdmin extends JFrame {
         
         dialog.add(pnlFilter, BorderLayout.NORTH);
 
-        // --- 2. BẢNG DỮ LIỆU (CENTER) ---
         String[] columns = {"Mã NV", "Họ Tên", "Lương Cứng", "Tiền Thưởng (VNĐ)", "Tiền Phạt", "Thực Lĩnh", "Ghi Chú"};
         DefaultTableModel modelLS = new DefaultTableModel(columns, 0);
         JTable tableLS = new JTable(modelLS);
         
-        // Style bảng
         tableLS.setRowHeight(30);
         tableLS.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tableLS.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        tableLS.getTableHeader().setBackground(new Color(255, 193, 7)); // Màu vàng Archive
+        tableLS.getTableHeader().setBackground(new Color(255, 193, 7)); 
         
-        // Highlight cột TIỀN THƯỞNG (Cột 3) cho đúng ý cậu
         tableLS.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public void setValue(Object value) {
                 super.setValue(value);
                 this.setFont(new Font("Segoe UI", Font.BOLD, 13));
-                this.setForeground(new Color(40, 167, 69)); // Màu xanh lá tiền tài
+                this.setForeground(new Color(40, 167, 69)); 
             }
         });
 
         dialog.add(new JScrollPane(tableLS), BorderLayout.CENTER);
 
-        // --- 3. LOGIC TẢI DỮ LIỆU ---
-        
-        // 3.1. Tải danh sách các tháng có trong DB vào ComboBox
         try {
             java.sql.Connection conn = database.ConnectDB.getConnection();
-            // Lấy các tháng duy nhất đã lưu
             String sqlGetMonths = "SELECT DISTINCT Thang, Nam FROM BangLuongLuuTru ORDER BY Nam DESC, Thang DESC";
             java.sql.Statement stmt = conn.createStatement();
             java.sql.ResultSet rs = stmt.executeQuery(sqlGetMonths);
@@ -911,17 +851,15 @@ public class ThongKeAdmin extends JFrame {
             conn.close();
         } catch (Exception e) { e.printStackTrace(); }
 
-        // 3.2. Sự kiện bấm nút Xem
         btnXem.addActionListener(e -> {
             String selected = (String) cboThang.getSelectedItem();
             if (selected == null || selected.startsWith("--")) return;
 
-            // Parse lấy tháng/năm từ chuỗi "Tháng 12/2025"
             String[] parts = selected.replace("Tháng ", "").split("/");
             int thang = Integer.parseInt(parts[0]);
             int nam = Integer.parseInt(parts[1]);
 
-            modelLS.setRowCount(0); // Xóa bảng cũ
+            modelLS.setRowCount(0); 
             
             try {
                 java.sql.Connection conn = database.ConnectDB.getConnection();
@@ -936,7 +874,7 @@ public class ThongKeAdmin extends JFrame {
                         rs.getString("MaNV"),
                         rs.getString("HoTen"),
                         String.format("%,d", rs.getLong("LuongCung")),
-                        String.format("%,d", rs.getLong("TienThuong")), // Cột này sẽ xanh
+                        String.format("%,d", rs.getLong("TienThuong")), 
                         String.format("%,d", rs.getLong("TienPhat")),
                         String.format("%,d", rs.getLong("ThucLinh")),
                         rs.getString("LyDoGhiChu")
@@ -952,10 +890,9 @@ public class ThongKeAdmin extends JFrame {
             }
         });
 
-        // Tự động chọn tháng mới nhất nếu có
         if (cboThang.getItemCount() > 1) {
             cboThang.setSelectedIndex(1);
-            btnXem.doClick(); // Tự bấm nút xem luôn
+            btnXem.doClick(); 
         }
 
         dialog.setVisible(true);

@@ -2,7 +2,6 @@ package logic;
 
 public class MayTinhLuong {
     
-    // --- CÁC HÀM PHỤ TRỢ (Đừng xóa mấy cái này nhé) ---
 
     public static double tinhTongLuong(double luong1Gio, double gioChuan, double gioTangCa, double heSoTangCa, boolean coNghiThaiSan) {
         double troCapThaiSan = 0;
@@ -38,35 +37,33 @@ public class MayTinhLuong {
         if (thuNhapTinhThue <= 80000000) return (thuNhapTinhThue * 0.3) - 5850000;
         
         return (thuNhapTinhThue * 0.35) - 9850000;
-    }
-
-    // --- HÀM TÍNH LƯƠNG CHÍNH (Đã cập nhật logic Thâm Niên) ---
+    }	
 
     public static long tinhThucLinhFinal(long luongCoBan, float heSoLuong, double gioTangCa, double heSoTangCa, 
                                          long tienThuong, long tienPhat, int soNguoiPhuThuoc, 
                                          java.util.Date ngayVaoLam) {
         
-        // 1. Lương Cứng
+        // Lương Cứng
         long luongCung = (long) (luongCoBan * heSoLuong);
         
-        // 2. Tính Tiền Thâm Niên (Gọi sang file ThuatToanTangLuong)
+        // Tính Tiền Thâm Niên (Gọi sang file ThuatToanTangLuong)
         double phanTramThamNien = logic.ThuatToanTangLuong.tinhPhuCapThamNien(ngayVaoLam);
         long tienThamNien = (long) (luongCung * phanTramThamNien);
         
-        // 3. Tính lương 1 giờ (để tính OT)
+        // Tính lương 1 giờ (để tính OT)
         double luong1Gio = (double)luongCung / 26 / 8;
         
-        // 4. Tổng Gross = Lương cứng + Thâm niên + OT
+        // Tổng Gross = Lương cứng + Thâm niên + OT
         double tongLuongGross = luongCung + tienThamNien + (gioTangCa * luong1Gio * heSoTangCa);
         
-        // 5. Các khoản trừ (Gọi hàm bên trên - Hết lỗi nhé!)
+        // Các khoản trừ (Gọi hàm bên trên)
         double baoHiem = tinhBaoHiem(tongLuongGross);
         double thue = tinhThueTNCN(tongLuongGross, soNguoiPhuThuoc);
         
-        // 6. Phụ cấp cố định (Ăn + Xăng)
+        // Phụ cấp cố định (Ăn + Xăng)
         long phuCapCung = 730000 + 300000; 
 
-        // 7. Chốt Thực Lĩnh
+        // Chốt Thực Lĩnh
         double thucLinh = (tongLuongGross - baoHiem - thue) + phuCapCung + tienThuong - tienPhat;
         
         return (long) Math.round(thucLinh);

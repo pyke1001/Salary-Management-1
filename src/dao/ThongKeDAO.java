@@ -1,5 +1,5 @@
 package dao;
-														// Thống kê DAO - Hướng
+														
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

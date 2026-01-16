@@ -33,7 +33,7 @@ public class HienThiCuaSo {
 	public void hienThiCuaSoDanhBa() { 
         JDialog dialog = new JDialog(view, "Danh Bạ Nhân Viên", true);
         dialog.setSize(600, 550);
-        dialog.setLocationRelativeTo(view); // Sửa: view
+        dialog.setLocationRelativeTo(view); 
         dialog.getContentPane().setLayout(null);
 
         JLabel lblLoc = new JLabel("Lọc Phòng Ban:");
@@ -78,7 +78,7 @@ public class HienThiCuaSo {
         Runnable napDuLieu = () -> {
             String phongDuocChon = cboPhong.getSelectedItem().toString();
             String tuKhoa = txtTimDanhBa.getText().trim();
-            // Sửa: view.dao
+            
             List < NhanVien > list = view.dao.timKiemDanhBa(phongDuocChon, tuKhoa);
             modelDanhBa.setRowCount(0);
             for (NhanVien nv: list) {
@@ -96,11 +96,10 @@ public class HienThiCuaSo {
         dialog.setVisible(true);
     }
 
-    // 👇 Sửa: public + view.dao + view.taiKhoanHienTai
     public void hienThiFormDoiMatKhau() { 
-        JDialog dialog = new JDialog(view, "Đổi Mật Khẩu", true); // Sửa: view
+        JDialog dialog = new JDialog(view, "Đổi Mật Khẩu", true); 
         dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(view); // Sửa: view
+        dialog.setLocationRelativeTo(view); 
         dialog.getContentPane().setLayout(null);
 
         JLabel lblCu = new JLabel("Mật khẩu cũ:");
@@ -142,7 +141,7 @@ public class HienThiCuaSo {
                 JOptionPane.showMessageDialog(dialog, "Mật khẩu xác nhận không trùng khớp!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            // Sửa: view.dao + view.taiKhoanHienTai
+            
             if (view.dao.doiMatKhau(view.taiKhoanHienTai, cu, moi)) {
                 JOptionPane.showMessageDialog(dialog, "✅ Đổi mật khẩu thành công!");
                 dialog.dispose();
@@ -153,11 +152,10 @@ public class HienThiCuaSo {
         dialog.setVisible(true);
     }
 
-    // 👇 Sửa: public + view.dao
     public void hienThiDanhSachTaiKhoanAdmin() { 
-        JDialog dialog = new JDialog(view, "Danh Sách Tài Khoản & Mật Khẩu", true); // Sửa: view
+        JDialog dialog = new JDialog(view, "Danh Sách Tài Khoản & Mật Khẩu", true); 
         dialog.setSize(800, 500);
-        dialog.setLocationRelativeTo(view); // Sửa: view
+        dialog.setLocationRelativeTo(view); 
         dialog.getContentPane().setLayout(null);
 
         JLabel lblTitle = new JLabel("BẢNG THEO DÕI TÀI KHOẢN NHÂN VIÊN");
@@ -194,7 +192,6 @@ public class HienThiCuaSo {
         sp.setBounds(30, 90, 720, 350);
         dialog.getContentPane().add(sp);
 
-        // Sửa: view.dao
         List < String[] > listGoc = view.dao.layDanhSachTaiKhoan();
 
         modelTK.addTableModelListener(e -> {
@@ -205,7 +202,7 @@ public class HienThiCuaSo {
                     String passMoi = modelTK.getValueAt(row, column).toString();
                     String username = modelTK.getValueAt(row, 3).toString();
                     String maNV = modelTK.getValueAt(row, 0).toString();
-                    // Sửa: view.dao
+                    
                     if (view.dao.capNhatMatKhau(username, passMoi)) {
                         for (String[] item: listGoc) {
                             if (item[0].equals(maNV)) {
@@ -239,14 +236,12 @@ public class HienThiCuaSo {
         dialog.setVisible(true);
     }
     
-    // 👇 Sửa: public + view.uiSecret
     public void hienThiFormBaoLoi() { 
-        JDialog dialog = new JDialog(view, "Gửi Báo Cáo Lỗi", true); // Sửa: view
+        JDialog dialog = new JDialog(view, "Gửi Báo Cáo Lỗi", true); 
         dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(view); // Sửa: view
+        dialog.setLocationRelativeTo(view); 
         dialog.getContentPane().setLayout(null);
         
-        // Sửa: view.uiSecret
         if (view.ui.isCheatMode()) {
             JLabel lblGradius = new JLabel("Nothing here but GRADIUS_1986.");
             lblGradius.setFont(new Font("Segoe UI", Font.ITALIC | Font.BOLD, 10));
@@ -287,7 +282,6 @@ public class HienThiCuaSo {
                 return;
             }
             
-            // Sửa: view.uiSecret + view.uiSecret.unlockSecret
             if (view.ui.isCheatMode() && tieuDe.equals("GRADIUS_1986")) {
                 view.ui.unlockSecret("GRADIUS"); 
                 dialog.dispose();
@@ -309,11 +303,10 @@ public class HienThiCuaSo {
         dialog.setVisible(true);
     }
         
-    // 👇 Sửa: public + view.dao
     public void hienThiBangLichSu() {
-        JDialog dialog = new JDialog(view, "Nhật Ký Hoạt Động Hệ Thống", true); // Sửa: view
+        JDialog dialog = new JDialog(view, "Nhật Ký Hoạt Động Hệ Thống", true); 
         dialog.setSize(1200, 600); 
-        dialog.setLocationRelativeTo(view); // Sửa: view
+        dialog.setLocationRelativeTo(view); 
         
         String[] cols = {"ID", "Nhân Viên Bị Tác Động", "Hành Động", "Chi Tiết Thay Đổi", "Người Thực Hiện", "Thời Gian"};
         
@@ -334,7 +327,6 @@ public class HienThiCuaSo {
         tblLS.getColumnModel().getColumn(4).setPreferredWidth(120); 
         tblLS.getColumnModel().getColumn(5).setPreferredWidth(150); 
         
-        // Sửa: view.dao
         List<String[]> logs = view.dao.layDanhSachLichSu();
         for (String[] row : logs) {
             modelLS.addRow(row);
@@ -351,18 +343,16 @@ public class HienThiCuaSo {
         dialog.setVisible(true);
     }
 
-    // 👇 Sửa: public + view.dao + view.loadData
     public void hienThiCuaSoKhoiPhuc() {
-        JDialog dialog = new JDialog(view, "Hồ Sơ Lưu Trữ", true); // Sửa: view
+        JDialog dialog = new JDialog(view, "Hồ Sơ Lưu Trữ", true); 
         dialog.setSize(600, 400);
-        dialog.setLocationRelativeTo(view); // Sửa: view
+        dialog.setLocationRelativeTo(view); 
         dialog.setLayout(new BorderLayout());
 
         String[] cols = {"Mã NV", "Họ Tên", "Phòng Ban"};
         DefaultTableModel m = new DefaultTableModel(cols, 0);
         JTable t = new JTable(m);
         
-        // Sửa: view.dao
         List<NhanVien> list = view.dao.layDanhSachNhanVienDaXoa();
         for (NhanVien nv : list) {
             m.addRow(new Object[]{nv.getMaNV(), nv.getHoTen(), nv.getTenPB()});
@@ -376,12 +366,12 @@ public class HienThiCuaSo {
                 return;
             }
             String ma = t.getValueAt(row, 0).toString();
-            // Sửa: view.dao
+            
             if (view.dao.khoiPhucNhanVien(ma)) {
                 view.dao.taoLaiTaiKhoan(ma, "123");
                 JOptionPane.showMessageDialog(dialog, "✅ Khôi phục thành công!");
                 dialog.dispose();
-                // Sửa: view.loadData
+                
                 view.loadData("NV.MaNV ASC");
             }
         });

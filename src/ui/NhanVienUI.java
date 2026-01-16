@@ -79,7 +79,7 @@ public class NhanVienUI {
         btnDoiAnh.setBounds(75, 330, 150, 35);
         btnDoiAnh.setBackground(new Color(52, 152, 219));
         btnDoiAnh.setForeground(Color.WHITE);
-        // Sửa: Dùng 'p' hoặc 'nvUI' làm parentComponent thay vì 'this'
+        
         btnDoiAnh.addActionListener(e -> JOptionPane.showMessageDialog(p, "Tính năng đang phát triển!"));
         pnlIdentity.add(btnDoiAnh);
 
@@ -170,7 +170,6 @@ public class NhanVienUI {
         JPanel p = new JPanel(null);
         p.setBackground(Color.WHITE);
 
-        // 1. Tính toán số liệu lương
         long luongCung = (long) (myProfile.getLuongCoBan() * myProfile.getHeSoLuong());
         double phanTramTN = logic.ThuatToanTangLuong.tinhPhuCapThamNien(myProfile.getNgayVaoLam());
         long tienThamNien = (long) (luongCung * phanTramTN);
@@ -184,14 +183,11 @@ public class NhanVienUI {
         long tongThuong = myProfile.getTienThuong() + thuongDoanhSo + thuongTet;
         long thucLinh = luongCung + tienThamNien + phuCapAn + phuCapXang + tongThuong - phat;
         
-        // 2. Vẽ Biểu Đồ (Bên Trái) - Giữ nguyên logic cũ
         JPanel pnlCharts = new JPanel(new GridLayout(2, 1, 0, 20));
         pnlCharts.setBounds(30, 20, 400, 600);
         pnlCharts.setBackground(Color.WHITE);
         pnlCharts.setBorder(javax.swing.BorderFactory.createTitledBorder("TRỰC QUAN HÓA THU NHẬP"));
 
-        // ... (Đoạn code vẽ biểu đồ giữ nguyên, tớ rút gọn để cậu dễ nhìn) ...
-        // --- BẮT ĐẦU ĐOẠN VẼ BIỂU ĐỒ (Copy lại đoạn cũ của cậu vào đây hoặc dùng đoạn dưới) ---
         JPanel pnlBarChart = new JPanel() {
             @Override
             protected void paintComponent(java.awt.Graphics g) {
@@ -245,9 +241,7 @@ public class NhanVienUI {
         };
         pnlPieChart.setBackground(Color.WHITE); pnlCharts.add(pnlPieChart);
         p.add(pnlCharts);
-        // --- KẾT THÚC ĐOẠN BIỂU ĐỒ ---
 
-        // 3. Bảng Chi Tiết Lương (Bên Phải - Trên)
         String[] columns = {"Khoản Mục", "Số Tiền (VNĐ)"};
         Object[][] data = {
             {"Lương Cứng (HS " + myProfile.getHeSoLuong() + ")", String.format("%,d", luongCung)},
@@ -264,7 +258,7 @@ public class NhanVienUI {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         JTable table = new JTable(model);
-        table.setRowHeight(30); // Giảm chiều cao dòng chút cho gọn
+        table.setRowHeight(30); 
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         
         table.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
@@ -281,19 +275,16 @@ public class NhanVienUI {
         });
 
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBounds(450, 25, 500, 235); // Thu gọn chiều cao để nhường chỗ cho Phúc Lợi
+        scroll.setBounds(450, 25, 500, 235); 
         p.add(scroll);
 
-        // 4. [MỚI] PHẦN PHÚC LỢI & ĐÃI NGỘ (Bên Phải - Dưới)
-        // Tính thâm niên để hiển thị phúc lợi tương ứng
         int thamNien = 0;
         if (myProfile.getNgayVaoLam() != null) {
             LocalDate start = new java.util.Date(myProfile.getNgayVaoLam().getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             thamNien = Period.between(start, LocalDate.now()).getYears();
         }
         
-        // Panel chứa các thẻ phúc lợi
-        JPanel pnlPhucLoi = new JPanel(new GridLayout(2, 2, 10, 10)); // Grid 2x2
+        JPanel pnlPhucLoi = new JPanel(new GridLayout(2, 2, 10, 10)); 
         pnlPhucLoi.setBounds(450, 280, 500, 320);
         pnlPhucLoi.setBackground(Color.WHITE);
         pnlPhucLoi.setBorder(javax.swing.BorderFactory.createTitledBorder(
@@ -304,12 +295,10 @@ public class NhanVienUI {
             new Font("Segoe UI", Font.BOLD, 13), new Color(0, 150, 136)
         ));
 
-        // Logic hiển thị phúc lợi theo thâm niên
-        int phepNam = 12 + (thamNien / 5); // Cứ 5 năm thêm 1 ngày phép
+        int phepNam = 12 + (thamNien / 5); 
         String levelBh = thamNien >= 3 ? "Bảo Việt Care (VIP)" : "BHYT Cơ Bản";
-        Color colorBh = thamNien >= 3 ? new Color(255, 193, 7) : new Color(33, 150, 243); // Vàng VIP hoặc Xanh thường
+        Color colorBh = thamNien >= 3 ? new Color(255, 193, 7) : new Color(33, 150, 243); 
         
-        // Thêm 4 thẻ phúc lợi
         pnlPhucLoi.add(createBenefitItem("🏥 Bảo Hiểm Sức Khỏe", levelBh, "Đóng 100% chi phí", colorBh));
         pnlPhucLoi.add(createBenefitItem("🏖️ Nghỉ Phép Năm", phepNam + " ngày/năm", "Được trả lương nếu không nghỉ hết", new Color(76, 175, 80)));
         pnlPhucLoi.add(createBenefitItem("✈️ Du Lịch Công Ty", "Gói Standard", "1 lần/năm (Team Building)", new Color(156, 39, 176)));
@@ -323,7 +312,6 @@ public class NhanVienUI {
     private JPanel createBenefitItem(String title, String value, String subtext, Color accentColor) {
         JPanel p = new JPanel(new GridLayout(3, 1));
         p.setBackground(new Color(250, 250, 250));
-        // Viền trái màu đậm để tạo điểm nhấn
         p.setBorder(javax.swing.BorderFactory.createCompoundBorder(
             javax.swing.BorderFactory.createMatteBorder(0, 4, 0, 0, accentColor),
             javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 5)
@@ -415,7 +403,6 @@ public class NhanVienUI {
         JPanel p = new JPanel(new java.awt.BorderLayout());
         p.setBackground(Color.WHITE);
 
-        // 1. Header đẹp
         JPanel pnlHead = new JPanel(new java.awt.BorderLayout());
         pnlHead.setBackground(Color.WHITE);
         pnlHead.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 20, 10, 20));
@@ -432,7 +419,6 @@ public class NhanVienUI {
         
         p.add(pnlHead, java.awt.BorderLayout.NORTH);
 
-        // 2. Bảng thư
         String[] cols = {"ID", "Tiêu Đề", "Ngày Nhận", "Trạng Thái"};
         DefaultTableModel modelThu = new DefaultTableModel(cols, 0) {
             @Override
@@ -442,53 +428,46 @@ public class NhanVienUI {
         tblThu.setRowHeight(35);
         tblThu.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         
-        // [LILITH EDIT] Tinh chỉnh giao diện OCD
-        tblThu.setShowVerticalLines(false);     // Tắt kẻ dọc (cho thoáng)
-        tblThu.setShowHorizontalLines(true);    // Bật kẻ ngang (để gióng hàng)
-        tblThu.setGridColor(new Color(220, 220, 220)); // Màu kẻ xám nhạt
-        tblThu.setIntercellSpacing(new java.awt.Dimension(0, 1)); // Khoảng cách giữa các dòng
+        tblThu.setShowVerticalLines(false);     
+        tblThu.setShowHorizontalLines(true);    
+        tblThu.setGridColor(new Color(220, 220, 220)); 
+        tblThu.setIntercellSpacing(new java.awt.Dimension(0, 1)); 
 
-        // [LILITH EDIT] Căn chỉnh độ rộng cột
-        tblThu.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID nhỏ xíu
-        tblThu.getColumnModel().getColumn(0).setMaxWidth(60);        // Chặn không cho to ra
+        tblThu.getColumnModel().getColumn(0).setPreferredWidth(50);  
+        tblThu.getColumnModel().getColumn(0).setMaxWidth(60);        
         
-        tblThu.getColumnModel().getColumn(1).setPreferredWidth(500); // Tiêu đề to nhất
+        tblThu.getColumnModel().getColumn(1).setPreferredWidth(500); 
         
-        tblThu.getColumnModel().getColumn(2).setPreferredWidth(150); // Ngày nhận vừa phải
+        tblThu.getColumnModel().getColumn(2).setPreferredWidth(150); 
         
-        tblThu.getColumnModel().getColumn(3).setPreferredWidth(100); // Trạng thái nhỏ
-        tblThu.getColumnModel().getColumn(3).setMaxWidth(120);       // Chặn max
+        tblThu.getColumnModel().getColumn(3).setPreferredWidth(100); 
+        tblThu.getColumnModel().getColumn(3).setMaxWidth(120);       
         
-        // Renderer: Tô đậm thư chưa đọc + Màu nền xen kẽ
         tblThu.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
             @Override
             public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 String status = table.getValueAt(row, 3).toString();
                 
-                // Logic In đậm / In thường
                 if (status.equals("Chưa xem")) {
                     c.setFont(new Font("Segoe UI", Font.BOLD, 14));
                     c.setForeground(new Color(0, 0, 0));
                 } else {
                     c.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                    c.setForeground(new Color(80, 80, 80)); // Màu xám đậm cho dễ đọc hơn xám nhạt
+                    c.setForeground(new Color(80, 80, 80)); 
                 }
                 
-                // Logic Màu nền (Zebra + Selection)
                 if (isSelected) {
                     c.setBackground(new Color(232, 240, 254));
                 } else {
-                    c.setBackground(Color.WHITE); // Để nền trắng hết cho đường kẻ grid hiện rõ
+                    c.setBackground(Color.WHITE); 
                 }
                 
-                // Căn lề cho đẹp
-                setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 10)); // Padding chữ
+                setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 10)); 
                 return c;
             }
         });
 
-        // Hàm nạp dữ liệu
         Runnable loadData = () -> {
             modelThu.setRowCount(0);
             List<String[]> listThu = nvUI.dao.layDanhSachThu(myProfile.getMaNV());
@@ -500,7 +479,6 @@ public class NhanVienUI {
             }
         };
 
-        // 3. Xử lý sự kiện Click đúp
         tblThu.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (e.getClickCount() == 2) { 
@@ -552,5 +530,4 @@ public class NhanVienUI {
 
         return p;
     }
-
 }

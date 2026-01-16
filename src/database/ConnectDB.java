@@ -45,7 +45,6 @@ public class ConnectDB {
             try {
                 Connection conn = tryConnect(props);
                 if (conn != null) {
-                    // [MỚI] Kết nối xong là kiểm tra nâng cấp ngay!
                     kiemTraVaCapNhatCauTruc(conn); 
                     return conn;
                 }
@@ -87,13 +86,11 @@ public class ConnectDB {
         }
     }
 
-    // --- [HÀM MỚI] Tự động vá lỗi thiếu cột/thiếu bảng cho cả 2 loại DB ---
     private static void kiemTraVaCapNhatCauTruc(Connection conn) {
         try {
             Statement stmt = conn.createStatement();
-            String dbType = conn.getMetaData().getDatabaseProductName(); // SQLite hoặc Microsoft SQL Server
+            String dbType = conn.getMetaData().getDatabaseProductName();
             
-            // 1. VÁ CÁC CỘT THIẾU (Dùng try-catch để lờ đi nếu cột đã có)
             if (dbType.contains("SQLite")) {
                 String[] cols = {
                     "ALTER TABLE NhanVien ADD COLUMN GioTangCa DOUBLE DEFAULT 0",
@@ -113,12 +110,11 @@ public class ConnectDB {
                 for (String sql : cols) try { stmt.executeUpdate(sql); } catch (Exception e) {}
             }
 
-            // 2. TẠO BẢNG HỘP THƯ & LƯU TRỮ (Nếu chưa có)
             if (dbType.contains("SQLite")) {
                 stmt.executeUpdate("CREATE TABLE IF NOT EXISTS HopThu (ID INTEGER PRIMARY KEY AUTOINCREMENT, MaNV TEXT, TieuDe TEXT, NoiDung TEXT, NgayGui TEXT DEFAULT (datetime('now', 'localtime')), DaXem INTEGER DEFAULT 0)");
                 stmt.executeUpdate("CREATE TABLE IF NOT EXISTS BangLuongLuuTru (ID INTEGER PRIMARY KEY AUTOINCREMENT, MaNV TEXT, HoTen TEXT, Thang INTEGER, Nam INTEGER, LuongCung BIGINT, TienThuong BIGINT, TienPhat BIGINT, ThucLinh BIGINT, LyDoGhiChu TEXT)");
             } else {
-                // SQL Server (Giả lập IF NOT EXISTS bằng try-catch)
+
                 try {
                     stmt.executeUpdate("CREATE TABLE HopThu (ID INT PRIMARY KEY IDENTITY(1,1), MaNV VARCHAR(50), TieuDe NVARCHAR(255), NoiDung NVARCHAR(MAX), NgayGui DATETIME DEFAULT GETDATE(), DaXem INT DEFAULT 0)");
                 } catch (Exception e) {}

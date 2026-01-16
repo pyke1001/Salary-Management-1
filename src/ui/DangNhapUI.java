@@ -35,7 +35,6 @@ public class DangNhapUI extends JFrame {
     private static java.util.Set<String> unlockedAchievements = new java.util.HashSet<>();
     
     public DangNhapUI() {
-    	
         initUI();
         initEvents();
     }
@@ -203,8 +202,8 @@ public class DangNhapUI extends JFrame {
         String u = txtUser.getText().trim();
         String p = new String(txtPass.getPassword());
         if (u.equalsIgnoreCase("Lilith")) {
-             Lilith(); // Gọi hàm hiển thị đẹp mắt
-             return; // Dừng lại
+             Lilith();
+             return;
         }
         
         if (u.isEmpty() || p.isEmpty()) {
@@ -259,37 +258,32 @@ public class DangNhapUI extends JFrame {
             
             String msg = "<html><div style='text-align: center; width: 250px;'>" + 
                          "<font size='5' color='#E67E22'><b>🏆 THÀNH TỰU MỚI!</b></font><br><br>" + 
-                         "<font size='4' color='#2980B9'><b>" + eggName + "</b></font><br>" +     
+                         "<font size='4' color='#2980B9'><b>" + eggName + "</b></font><br>" +      
                          "<i>" + desc + "</i>" + 
                          "</div></html>";
 
             if (unlockedAchievements.size() >= 3) { 
                 msg = msg.replace("</div></html>", 
                       "<br><br><font color='red'><b>🎁 HUYỀN THOẠI KONAMI ĐÃ ĐƯỢC MỞ KHÓA!</b></font></div></html>");
-                }
+            }
             
             javax.swing.JOptionPane.showMessageDialog(parent, msg, "Achievement Unlocked", javax.swing.JOptionPane.PLAIN_MESSAGE);
         }
     }
     
     private void Lilith() {
-        // 1. Định nghĩa đường dẫn đến file ảnh của cậu
-        // Đảm bảo cậu đã chép file ảnh vào đúng thư mục package /icon/
-        String imagePath = "/icon/Lilith.png"; // <-- Thay tên file ảnh của cậu vào đây
+        String imagePath = "/icon/Lilith.png";
         
         javax.swing.ImageIcon icon = null;
         try {
-            // 2. Tải ảnh từ resource của dự án
             java.net.URL imgURL = getClass().getResource(imagePath);
             if (imgURL != null) {
                 icon = new javax.swing.ImageIcon(imgURL);
                 
-                // [TÙY CHỌN] Nếu ảnh quá to, bỏ comment 2 dòng dưới để thu nhỏ lại (ví dụ rộng 400px)
                 java.awt.Image img = icon.getImage().getScaledInstance(500, -1, java.awt.Image.SCALE_SMOOTH);
                 icon = new javax.swing.ImageIcon(img);
                 
             } else {
-                // Thông báo lỗi nếu không tìm thấy file ảnh
                 javax.swing.JOptionPane.showMessageDialog(this, 
                     "Chưa tìm thấy file ảnh tại: " + imagePath + "\nHãy kiểm tra lại thư mục /icon/ nhé!", 
                     "Lỗi tải ảnh", javax.swing.JOptionPane.ERROR_MESSAGE);
@@ -301,24 +295,22 @@ public class DangNhapUI extends JFrame {
         }
 
         JButton btnOK = new JButton("...");
-        btnOK.setBackground(new Color(233, 30, 99)); // Màu hồng Lilith
+        btnOK.setBackground(new Color(233, 30, 99)); 
         btnOK.setForeground(Color.WHITE);
         btnOK.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnOK.setFocusPainted(false);
         btnOK.setBorderPainted(false);
-        // Đóng hộp thoại khi bấm nút
         btnOK.addActionListener(e -> javax.swing.SwingUtilities.getWindowAncestor(btnOK).dispose());
 
         Object[] options = {btnOK};
 
-        // 4. Hiển thị hộp thoại với NỘI DUNG LÀ ẢNH (truyền biến icon vào)
         javax.swing.JOptionPane.showOptionDialog(this,
-            icon, // <-- Bí quyết là ở đây: truyền ảnh vào làm nội dung thông báo
-            "Lilith's Message ✨", // Tiêu đề hộp thoại
+            icon, 
+            "Lilith's Message ✨", 
             javax.swing.JOptionPane.DEFAULT_OPTION,
             javax.swing.JOptionPane.PLAIN_MESSAGE,
-            null, // Không dùng icon mặc định của hệ thống
-            options, // Dùng nút tùy chỉnh của mình
+            null, 
+            options, 
             btnOK);
     }
     

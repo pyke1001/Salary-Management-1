@@ -32,17 +32,14 @@ public class PhieuLuongUI extends JFrame {
         initEvents();
         dienDuLieuTuDong();
         
-        // [LOGIC MỚI] Xử lý Giới Tính
         xyLyCheDoThaiSan();
     }
     
     private void xyLyCheDoThaiSan() {
         if (gioiTinh != null && gioiTinh.equalsIgnoreCase("Nam")) {
-            // Nếu là Nam: Ẩn luôn cho đỡ ngứa mắt (hoặc dùng setEnabled(false) nếu muốn hiện mờ)
             chkNghiThaiSan.setSelected(false);
             chkNghiThaiSan.setVisible(false); 
         } else {
-            // Nếu là Nữ: Hiện bình thường
             chkNghiThaiSan.setVisible(true);
         }
     }
@@ -57,18 +54,16 @@ public class PhieuLuongUI extends JFrame {
         int xLabel = 30, xText = 150, wText = 300, h = 30, gap = 40;
         int y = 20;
 
-        // 1. Họ tên (Khóa cứng)
         add(createLabel("Họ tên NV:", xLabel, y));
         txtHoTen = new JTextField(hoTenNV);
         txtHoTen.setEditable(false); 
         txtHoTen.setFocusable(false);
-        txtHoTen.setBackground(new Color(240, 240, 240)); // [MỚI] Màu xám nhẹ báo hiệu Read-only
+        txtHoTen.setBackground(new Color(240, 240, 240)); 
         txtHoTen.setFont(new Font("Segoe UI", Font.BOLD, 14));
         txtHoTen.setBounds(xText, y, wText, h);
         add(txtHoTen);
         y += gap;
 
-        // 2. Lương cứng
         add(createLabel("Lương cứng:", xLabel, y));
         txtLuongCung = new JTextField(String.format("%,d", luongCoBan));
         txtLuongCung.setEditable(false);
@@ -78,17 +73,15 @@ public class PhieuLuongUI extends JFrame {
         add(txtLuongCung);
         y += gap;
 
-        // 3. Giờ chuẩn (Khóa cứng theo yêu cầu)
         add(createLabel("Giờ chuẩn/tháng:", xLabel, y));
         txtGioLamChuan = new JTextField("160");
-        txtGioLamChuan.setEditable(false); // [MỚI] Khóa không cho sửa
+        txtGioLamChuan.setEditable(false); 
         txtGioLamChuan.setFocusable(false);
-        txtGioLamChuan.setBackground(new Color(240, 240, 240)); // [MỚI] Màu xám
+        txtGioLamChuan.setBackground(new Color(240, 240, 240)); 
         txtGioLamChuan.setBounds(xText, y, wText, h);
         add(txtGioLamChuan);
         y += gap;
 
-        // 4. Lương 1 giờ
         add(createLabel("Lương 1 giờ:", xLabel, y));
         txtLuongMotGio = new JTextField();
         txtLuongMotGio.setEditable(false);
@@ -99,7 +92,6 @@ public class PhieuLuongUI extends JFrame {
         add(txtLuongMotGio);
         y += gap + 10;
 
-        // --- PANEL TĂNG CA (OT) ---
         JPanel pnlTangCa = new JPanel();
         pnlTangCa.setLayout(new GridLayout(3, 2, 10, 10)); 
         pnlTangCa.setBounds(xLabel, y, 420, 130);
@@ -137,7 +129,6 @@ public class PhieuLuongUI extends JFrame {
         add(pnlTangCa);
         y += 150;
 
-        // 5. Checkbox Thai sản
         chkNghiThaiSan = new JCheckBox("Đang nghỉ thai sản (Bảo hiểm chi trả)?");
         chkNghiThaiSan.setFont(new Font("Arial", Font.ITALIC, 13));
         chkNghiThaiSan.setForeground(new Color(200, 0, 0));
@@ -145,7 +136,6 @@ public class PhieuLuongUI extends JFrame {
         add(chkNghiThaiSan);
         y += gap + 10;
 
-        // 6. Nút Tính Lương
         btnTinhLuong = new JButton("💵 TÍNH LƯƠNG & IN PHIẾU");
         btnTinhLuong.setFont(new Font("Dialog", Font.BOLD, 14)); 
         btnTinhLuong.setBackground(new Color(46, 204, 113)); 
@@ -154,11 +144,10 @@ public class PhieuLuongUI extends JFrame {
         add(btnTinhLuong);
         y += 50;
 
-        // 7. Vùng kết quả
         txtKetQua = new JTextArea();
         txtKetQua.setEditable(false); 
         txtKetQua.setFont(new Font("Monospaced", Font.PLAIN, 13));
-        txtKetQua.setBackground(new Color(245, 245, 245));            
+        txtKetQua.setBackground(new Color(245, 245, 245));             
         txtKetQua.setBorder(BorderFactory.createTitledBorder("Chi Tiết Phiếu Lương")); 
         
         JScrollPane sp = new JScrollPane(txtKetQua);
@@ -184,7 +173,6 @@ public class PhieuLuongUI extends JFrame {
 
     private void initEvents() {
         btnTinhLuong.addActionListener(e -> xuLyTinhLuong());
-        // Bỏ sự kiện keyReleased của txtGioLamChuan vì giờ nó đã bị khóa rồi
     }
 
     private void xuLyTinhLuong() {
@@ -195,7 +183,6 @@ public class PhieuLuongUI extends JFrame {
             double gio20 = (double) spnOT20.getValue();
             double gio30 = (double) spnOT30.getValue();
             
-            // Nếu bị ẩn (là Nam) thì mặc định là false, không cần check
             boolean dangNghiThaiSan = chkNghiThaiSan.isVisible() && chkNghiThaiSan.isSelected();
 
             long tienOT15 = (long) (luong1Gio * gio15 * 1.5);
@@ -220,8 +207,8 @@ public class PhieuLuongUI extends JFrame {
             if (tongTienOT > 0) {
                 chiTietOT = "--- CHI TIẾT TĂNG CA ---\n";
                 if (gio15 > 0) chiTietOT += String.format(" > Ngày thường (%.1fh): %11s\n", gio15, df.format(tienOT15));
-                if (gio20 > 0) chiTietOT += String.format(" > Cuối tuần   (%.1fh): %11s\n", gio20, df.format(tienOT20));
-                if (gio30 > 0) chiTietOT += String.format(" > Lễ/Tết      (%.1fh): %11s\n", gio30, df.format(tienOT30));
+                if (gio20 > 0) chiTietOT += String.format(" > Cuối tuần    (%.1fh): %11s\n", gio20, df.format(tienOT20));
+                if (gio30 > 0) chiTietOT += String.format(" > Lễ/Tết       (%.1fh): %11s\n", gio30, df.format(tienOT30));
                 chiTietOT += "----------------------------------------\n";
             }
             
@@ -233,15 +220,15 @@ public class PhieuLuongUI extends JFrame {
             String chiTiet = String.format(
                 " NHÂN VIÊN: %s (%s)\n" +
                 "========================================\n" +
-                " (+) Lương Cứng:       %15s VNĐ\n" +
+                " (+) Lương Cứng:        %15s VNĐ\n" +
                 " (+) Tổng Tiền Tăng Ca:%15s VNĐ\n" +
                 "%s" +
-                "%s" + // Dòng thông báo thai sản
-                " TỔNG LƯƠNG (GROSS):   %15s VNĐ\n" +
+                "%s" + 
+                " TỔNG LƯƠNG (GROSS):    %15s VNĐ\n" +
                 " (-) Bảo Hiểm (10.5%%):%15s VNĐ\n" +
-                " (-) Thuế TNCN:        %15s VNĐ\n" +
+                " (-) Thuế TNCN:         %15s VNĐ\n" +
                 "========================================\n" +
-                " THỰC LĨNH:            %15s VNĐ",
+                " THỰC LĨNH:             %15s VNĐ",
                 hoTenNV.toUpperCase(), gioiTinh,
                 df.format(luongCoBan),
                 df.format(tongTienOT),

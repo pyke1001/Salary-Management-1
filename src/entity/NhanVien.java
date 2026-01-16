@@ -16,11 +16,10 @@ public class NhanVien {
     private long phuCap;
     private String gioiTinh;
     
-    // --- CÁC BIẾN MỚI ---
     private double gioTangCa;
     private double heSoTangCa;
     private long thucLinh;
-    private String lyDoThuongPhat = ""; // Đã thêm cái này để tránh lỗi undefined
+    private String lyDoThuongPhat = "";
 
     public NhanVien() {
     }
@@ -34,7 +33,6 @@ public class NhanVien {
         this.ngayVaoLam = new Date();
     }
 
-    // --- GETTER & SETTER ĐẦY ĐỦ ---
     public String getLyDoThuongPhat() { return lyDoThuongPhat; }
     public void setLyDoThuongPhat(String lyDoThuongPhat) { this.lyDoThuongPhat = lyDoThuongPhat; }
 
